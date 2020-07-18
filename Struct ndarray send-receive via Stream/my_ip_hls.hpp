@@ -6,9 +6,10 @@
 using namespace hls;
 
 struct axiWord {
-   ap_uint<32>  data;
-   ap_uint<4>   strb;
-   ap_uint<1>   last;
+	float **input;
+	ap_uint<32>  data;
+	ap_uint<4>   strb;
+	ap_uint<1>   last;
 };
 
 

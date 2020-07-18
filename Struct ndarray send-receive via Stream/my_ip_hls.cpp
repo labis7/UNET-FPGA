@@ -32,9 +32,18 @@ void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, float **arra
 
 	//printf("\n\nResults: %d %d %d %d %d\n\n",(int)arr[0],(int)arr[1],(int)arr[2],(int)arr[3],(int)arr[4]);
 
+	axiWord dataOut = {0,0,0,0};
 	int dim=3;
-	float **tmp=(float **)malloc(dim*dim*sizeof(float *));//create BRAM space
-	memcpy(tmp,array, dim*dim*sizeof(float)); //ferto sthn BRAM (me ta katallhla directives mporw na to kanw registers gia pio grigora alla den exoume kai polu xwro giauto)
+	////////////////// create BRAM space ////////////////
+	float **tmp=(float **)malloc(dim*sizeof(float *));
+	for (int i = 0; i< dim; i++)
+		tmp[i] = (float *) malloc(dim*sizeof(float));
+	/////////////////////////////////////////////////////
+
+	float **tmp1;
+	slaveIn.read(dataOut);
+	tmp1 = dataOut.input;
+	memcpy(tmp,tmp1, dim*dim*sizeof(float)); //ferto sthn BRAM (me ta katallhla directives mporw na to kanw registers gia pio grigora alla den exoume kai polu xwro giauto)
 
 
 	printf("After SEND:\n");
@@ -43,10 +52,23 @@ void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, float **arra
 		for(int j=0;j<dim;j++)
 		{
 			printf("%f\t",tmp[i][j]);
+			tmp[i][j] = tmp[i][j] +1;
 		}
 		printf("\n");
 	}
 
+	printf("SENDIND BACK:\n");
+	for(int i=0;i<dim;i++)
+	{
+		for(int j=0;j<dim;j++)
+		{
+			printf("%f\t",tmp[i][j]);
+		}
+		printf("\n");
+	}
+	axiWord dataIn;
+	dataIn.input = tmp; //return the result
+	masterOut.write(dataIn);
 
 	//core of the IP
 	//uint32 tmp,tmp1;
