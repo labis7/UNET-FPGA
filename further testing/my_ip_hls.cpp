@@ -1,7 +1,7 @@
 #include "my_ip_hls.hpp"
 
 
-void my_ip_hls(stream<image> &slaveIn,stream<image> &masterOut) {
+void my_ip_hls(stream<data> &slaveIn,stream<data> &masterOut) {
 //#pragma HLS INTERFACE m_axi depth=32 port=slaveIn
 //	void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, uint32 rule1,uint32 rule2) {
 //#pragma HLS INTERFACE s_axilite port=count_out bundle=rule_config
@@ -35,13 +35,15 @@ void my_ip_hls(stream<image> &slaveIn,stream<image> &masterOut) {
 
 	//printf("\n\nResults: %d %d %d %d %d\n\n",(int)arr[0],(int)arr[1],(int)arr[2],(int)arr[3],(int)arr[4]);
 
-	image dataOut = {0,0,0};
+	data dataOut = {0,0,0};
 	int dim,ch;
 
 	slaveIn.read(dataOut);
 	dim = dataOut.dim;
 	ch = dataOut.ch;
 	////////////////// create BRAM space ////////////////
+	float img[ch][dim][dim];
+	/*
 	float ***img= (float ***)malloc(ch*sizeof(float**));
 	for (int i = 0; i< ch; i++)
 	{
@@ -49,9 +51,10 @@ void my_ip_hls(stream<image> &slaveIn,stream<image> &masterOut) {
 		for (int j = 0; j < dim; j++)
 			img[i][j] = (float *)malloc(dim*sizeof(float));
 	}
+	*/
 	/////////////////////////////////////////////////////
 
-	memcpy(img, dataOut.input, dim*dim*sizeof(float)); //ferto sthn BRAM (me ta katallhla directives mporw na to kanw registers gia pio grigora alla den exoume kai polu xwro giauto)
+	memcpy(img, dataOut.image, ch*dim*dim*sizeof(float)); //ferto sthn BRAM (me ta katallhla directives mporw na to kanw registers gia pio grigora alla den exoume kai polu xwro giauto)
 
 
 
@@ -70,8 +73,8 @@ void my_ip_hls(stream<image> &slaveIn,stream<image> &masterOut) {
 		}
 		printf("\n");
 	}
-	image dataIn;
-	dataIn.input = img; //return the result
+	data dataIn;
+	dataIn.image = (float *)img; //return the result
 	masterOut.write(dataIn);
 
 	//core of the IP
@@ -81,7 +84,7 @@ void my_ip_hls(stream<image> &slaveIn,stream<image> &masterOut) {
 	//fifo that keeps output data
 	//ip2ps_fifo(ip2psFifo,masterOut);
 
-	printf("\nDone!!\n");
+	//printf("\nDone!!\n");
 	return;
 
 }

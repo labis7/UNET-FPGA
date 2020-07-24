@@ -5,10 +5,13 @@
 
 using namespace hls;
 
-struct image{
-	float ***input;
+struct data{
+	float *image;
+	float *filter;
 	ap_uint<9>  dim;
 	ap_uint<9>   ch;
+	ap_uint<9>   f_num;
+	ap_uint<9>   f_dim;
 };
 
 
@@ -27,5 +30,5 @@ void rules(uint32 rule1,uint32 rule_2);
 void get_rules(uint32 &tmp,uint32 &tmp1);
 */
 
-void my_ip_hls(stream<image> &slaveIn,stream<image> &masterOut);
+void my_ip_hls(stream<data> &slaveIn,stream<data> &masterOut);
 //void my_ip_hls();
