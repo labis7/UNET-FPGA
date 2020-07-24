@@ -17,56 +17,78 @@ int main() {
 	uint32 rule1,rule2 = 0;
 
 	int ch=2;
-	int dim1 = 3;
-	int dim2 = 3;
-	float **tmp = (float **)malloc(dim1*sizeof(float*));
-	for(int i=0;i<dim1;i++)
+	int dim = 4;
+	float ***img= (float ***)malloc(ch*sizeof(float**));
+	for (i = 0; i< ch; i++)
 	{
-		tmp[i] = (float *) malloc(dim2*sizeof(float));
+		img[i] = (float **) malloc(dim*sizeof(float *));
+		for (int j = 0; j < dim; j++)
+			img[i][j] = (float *)malloc(dim*sizeof(float));
 	}
-	for(int i=0;i<dim1;i++)
-		for(int j=0;j<dim2;j++)
-			tmp[i][j] = (i+1)*(j*2+1)*1.3;
+
+	for(int c=0; c<ch ; c++)
+		for(int i=0;i<dim;i++)
+			for(int j=0;j<dim;j++)
+				img[c][i][j] = (i+1)*(j*2+1)*1.3 + c;
 	printf("Before SEND:\n");
-	for(int i=0;i<dim1;i++)
+	for(int c=0; c<ch ; c++)
 	{
-		for(int j=0;j<dim2;j++)
+		for(int i=0;i<dim;i++)
 		{
-			printf("%f\t",tmp[i][j]);
+			for(int j=0;j<dim;j++)
+			{
+				printf("%f\t",img[c][i][j]);
+			}
+			printf("\n");
 		}
 		printf("\n");
 	}
 
 
-	stream<axiWord> slaveIn("slaveIn");
-	stream<axiWord> masterOut("masterOut");
+	stream<image> slaveIn("slaveIn");
+	stream<image> masterOut("masterOut");
 
-	for (i=0;i<STREAM_TEST_ITERATIONS;i++) {
-		axiWord dataIn = {0,0,0};
-		dataIn.data = i+1;
-		dataIn.strb = 0b1111;
-		if (i == STREAM_TEST_ITERATIONS-1)
-			dataIn.last = 1;
-		else
-			dataIn.last = 0;
-		slaveIn.write(dataIn);
+	image dataIn = {0,0,0};
+	dataIn.ch = ch;
+	dataIn.dim = dim;
+	dataIn.input = img;
 
-		rule1=20;
-		rule2=50;
-		int arr[5] = {10, 20, 30, 40, 50};
+	slaveIn.write(dataIn);
 
-//		my_ip_hls(slaveIn, masterOut, rule1,rule2);
-		my_ip_hls(slaveIn, masterOut, tmp);
+	my_ip_hls(slaveIn, masterOut);
 
-		if (!masterOut.empty()) {
-			axiWord dataOut = {0,0,0};
-			masterOut.read(dataOut);
-			printf("%d: read data: %u\n",(int)i, (int)dataOut.data);
-		}
+	float ***ret;
+	//if (!masterOut.empty()) {
+	image dataOut = {0,0,0};
+	masterOut.read(dataOut);
 
-
+	ret= (float ***)malloc(ch*sizeof(float**));
+	for (i = 0; i< ch; i++)
+	{
+		ret[i] = (float **) malloc(dim*sizeof(float *));
+		for (int j = 0; j < dim; j++)
+			ret[i][j] = (float *)malloc(dim*sizeof(float));
 	}
+	memcpy(ret,dataOut.input , dim*dim*sizeof(float)); //WARNING,IF I DO memcpy(tmp,res) first item(0,0) will fail
+
+	//printf("%d: read data: %u\n",(int)i, (int)dataOut.data);
+
+	printf("After Processing:\n",dataOut.ch, dataOut.dim, dataOut.dim);
+	for(int c=0; c<ch ; c++)
+	{
+		for(int i=0;i<dim;i++)
+		{
+			for(int j=0;j<dim;j++)
+			{
+				printf("%f\t",ret[c][i][j]);
+			}
+			printf("\n");
+		}
+		printf("\n");
+	}
+
 	//printf("\n%d\n",(int)count_out);
 
+	printf("\n\nNo segmentation Problems\nFinishing . . .");
 	return 0;
 }
