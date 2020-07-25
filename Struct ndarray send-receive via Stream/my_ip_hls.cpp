@@ -1,24 +1,27 @@
 #include "my_ip_hls.hpp"
 
 
-void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, float **array) {
+void my_ip_hls(stream<data> &slaveIn,stream<data> &masterOut) {
 //#pragma HLS INTERFACE m_axi depth=32 port=slaveIn
 //	void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, uint32 rule1,uint32 rule2) {
 //#pragma HLS INTERFACE s_axilite port=count_out bundle=rule_config
-#pragma HLS INTERFACE s_axilite port=rule1 bundle=rule_config
-#pragma HLS INTERFACE s_axilite port=rule2 bundle=rule_config
+//#pragma HLS INTERFACE s_axilite port=rule1 bundle=rule_config
+//#pragma HLS INTERFACE s_axilite port=rule2 bundle=rule_config
+
+
 #pragma HLS DATAFLOW interval=1
 #pragma HLS INTERFACE axis register both port=slaveIn
 #pragma HLS INTERFACE axis register both port=masterOut
 #pragma HLS INTERFACE ap_ctrl_none port=return
 
 //internal fifos
-	static stream<axiWord> ps2ipFifo("ps2ipFifo");
+	/*
+	static stream<image> ps2ipFifo("ps2ipFifo");
 #pragma HLS STREAM variable=ps2ipFifo depth=64 dim=1
-	static stream<axiWord> ip2psFifo("ip2psFifo");
+	static stream<image> ip2psFifo("ip2psFifo");
 #pragma HLS STREAM variable=ip2psFifo depth=64 dim=1
 
-
+*/
 	//TODO: add function for configuration registers / counters via AXI Lite
 
 	//fifo that keeps input data
@@ -32,42 +35,49 @@ void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, float **arra
 
 	//printf("\n\nResults: %d %d %d %d %d\n\n",(int)arr[0],(int)arr[1],(int)arr[2],(int)arr[3],(int)arr[4]);
 
-	axiWord dataOut = {0,0,0,0};
-	int dim=3;
+	data dataOut;
+	int dim,ch;
+
+	slaveIn.read(dataOut);
+	dim = (int)dataOut.dim;
+	ch = (int)dataOut.ch;
+	printf("\nReceived: %d %d\n",ch,dim);
 	////////////////// create BRAM space ////////////////
-	float **tmp=(float **)malloc(dim*sizeof(float *));
-	for (int i = 0; i< dim; i++)
-		tmp[i] = (float *) malloc(dim*sizeof(float));
+	float img[ch][dim][dim];
+	/*
+	float ***img= (float ***)malloc(ch*sizeof(float**));
+	for (int i = 0; i< ch; i++)
+	{
+		img[i] = (float **) malloc(dim*sizeof(float *));
+		for (int j = 0; j < dim; j++)
+			img[i][j] = (float *)malloc(dim*sizeof(float));
+	}
+	*/
 	/////////////////////////////////////////////////////
 
-	float **tmp1;
-	slaveIn.read(dataOut);
-	tmp1 = dataOut.input;
-	memcpy(tmp,tmp1, dim*dim*sizeof(float)); //ferto sthn BRAM (me ta katallhla directives mporw na to kanw registers gia pio grigora alla den exoume kai polu xwro giauto)
+	memcpy(img, dataOut.image, ch*dim*dim*sizeof(float)); //ferto sthn BRAM (me ta katallhla directives mporw na to kanw registers gia pio grigora alla den exoume kai polu xwro giauto)
 
 
-	printf("After SEND:\n");
-	for(int i=0;i<dim;i++)
-	{
-		for(int j=0;j<dim;j++)
-		{
-			printf("%f\t",tmp[i][j]);
-			tmp[i][j] = tmp[i][j] +1;
-		}
-		printf("\n");
-	}
+
 
 	printf("SENDIND BACK:\n");
-	for(int i=0;i<dim;i++)
+	for(int c=0; c<ch ; c++)
 	{
-		for(int j=0;j<dim;j++)
+		for(int i=0;i<dim;i++)
 		{
-			printf("%f\t",tmp[i][j]);
+			for(int j=0;j<dim;j++)
+			{
+				img[c][i][j] = img[c][i][j] +5;
+				printf("%f\t",img[c][i][j]);
+			}
+			printf("\n");
 		}
 		printf("\n");
 	}
-	axiWord dataIn;
-	dataIn.input = tmp; //return the result
+	data dataIn;
+	dataIn.image = (float *)img; //return the result
+	dataIn.dim=dim;
+	dataIn.ch=ch;
 	masterOut.write(dataIn);
 
 	//core of the IP
@@ -77,6 +87,7 @@ void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, float **arra
 	//fifo that keeps output data
 	//ip2ps_fifo(ip2psFifo,masterOut);
 
+	//printf("\nDone!!\n");
 	return;
 
 }
