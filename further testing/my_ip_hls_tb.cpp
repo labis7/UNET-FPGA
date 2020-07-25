@@ -69,33 +69,36 @@ int main() {
 	stream<data> slaveIn("slaveIn");
 	stream<data> masterOut("masterOut");
 
-	data dataIn = {0,0,0};
-	dataIn.ch = ch;
-	dataIn.dim = dim;
-	dataIn.image = (float *)img;
-
-	slaveIn.write(dataIn);
+	data dataIn ;
+	//dataIn.ch = ch;
+	//dataIn.dim = dim;
+	//dataIn.image = (float *)img;
+	for(int c=0; c<ch ; c++)
+	{
+		for(int i=0;i<dim;i++)
+		{
+			for(int j=0;j<dim;j++)
+			{
+				dataIn.pixel = img[c][i][j];
+				slaveIn.write(dataIn);
+			}
+		}
+	}
+	//slaveIn.write(dataIn);
 
 	my_ip_hls(slaveIn, masterOut);
-	printf("\nEXITING!\n");
-	return 0;
-	float ***ret;
-	//if (!masterOut.empty()) {
-	data dataOut = {0,0,0};
-	masterOut.read(dataOut);
 
-	ret= (float ***)malloc(ch*sizeof(float**));
-	for (i = 0; i< ch; i++)
-	{
-		ret[i] = (float **) malloc(dim*sizeof(float *));
-		for (int j = 0; j < dim; j++)
-			ret[i][j] = (float *)malloc(dim*sizeof(float));
-	}
-	memcpy(ret,dataOut.image , dim*dim*sizeof(float)); //WARNING,IF I DO memcpy(tmp,res) first item(0,0) will fail
+
+/*
+	//if (!masterOut.empty()) {
+	data dataOut ;
+	masterOut.read(dataOut);
+	float ret[ch][dim][dim];
+	memcpy(ret,dataOut.image , ch*dim*dim*sizeof(float)); //WARNING,IF I DO memcpy(tmp,res) first item(0,0) will fail
 
 	//printf("%d: read data: %u\n",(int)i, (int)dataOut.data);
 
-	printf("After Processing:\n",dataOut.ch, dataOut.dim, dataOut.dim);
+	printf("\nAfter Processing, Channels:%d , Res: %dx%d\n",dataOut.ch,dataOut.dim,dataOut.dim);
 	for(int c=0; c<ch ; c++)
 	{
 		for(int i=0;i<dim;i++)
@@ -112,5 +115,6 @@ int main() {
 	//printf("\n%d\n",(int)count_out);
 
 	printf("\n\nNo segmentation Problems\nFinishing . . .");
+	*/
 	return 0;
 }

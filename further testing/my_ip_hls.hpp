@@ -6,12 +6,12 @@
 using namespace hls;
 
 struct data{
-	float *image;
-	float *filter;
-	ap_uint<9>  dim;
-	ap_uint<9>   ch;
-	ap_uint<9>   f_num;
-	ap_uint<9>   f_dim;
+	float pixel;
+	//float *filter;
+	//int  dim;
+	//int   ch;
+	//int   f_num;
+	//int   f_dim;
 };
 
 

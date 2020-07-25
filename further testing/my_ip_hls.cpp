@@ -1,5 +1,5 @@
 #include "my_ip_hls.hpp"
-
+static float img[2][4][4];
 
 void my_ip_hls(stream<data> &slaveIn,stream<data> &masterOut) {
 //#pragma HLS INTERFACE m_axi depth=32 port=slaveIn
@@ -35,14 +35,32 @@ void my_ip_hls(stream<data> &slaveIn,stream<data> &masterOut) {
 
 	//printf("\n\nResults: %d %d %d %d %d\n\n",(int)arr[0],(int)arr[1],(int)arr[2],(int)arr[3],(int)arr[4]);
 
-	data dataOut = {0,0,0};
+
+	data dataOut;
 	int dim,ch;
 
-	slaveIn.read(dataOut);
-	dim = dataOut.dim;
-	ch = dataOut.ch;
+	ch=2;
+	dim=4;
+	//float arr[2][4][4];
+
+	for(int c=0; c<ch ; c++)
+	{
+		for(int i=0;i<dim;i++)
+		{
+			for(int j=0;j<dim;j++)
+			{
+				slaveIn.read(dataOut);
+
+				img[c][i][j] = dataOut.pixel;
+			}
+		}
+	}
+	//slaveIn.read(dataOut);
+	//dim = (int)dataOut.dim;
+	//ch = (int)dataOut.ch;
+	//printf("\nReceived: %d %d\n",ch,dim);
 	////////////////// create BRAM space ////////////////
-	float img[ch][dim][dim];
+	//float img[ch][dim][dim];
 	/*
 	float ***img= (float ***)malloc(ch*sizeof(float**));
 	for (int i = 0; i< ch; i++)
@@ -54,11 +72,11 @@ void my_ip_hls(stream<data> &slaveIn,stream<data> &masterOut) {
 	*/
 	/////////////////////////////////////////////////////
 
-	memcpy(img, dataOut.image, ch*dim*dim*sizeof(float)); //ferto sthn BRAM (me ta katallhla directives mporw na to kanw registers gia pio grigora alla den exoume kai polu xwro giauto)
+	//memcpy(img, dataOut.image, ch*dim*dim*sizeof(float)); //ferto sthn BRAM (me ta katallhla directives mporw na to kanw registers gia pio grigora alla den exoume kai polu xwro giauto)
 
 
 
-
+	/*
 	printf("SENDIND BACK:\n");
 	for(int c=0; c<ch ; c++)
 	{
@@ -66,15 +84,18 @@ void my_ip_hls(stream<data> &slaveIn,stream<data> &masterOut) {
 		{
 			for(int j=0;j<dim;j++)
 			{
-				img[c][i][j] = img[c][i][j] +1;
+				img[c][i][j] = img[c][i][j] +5;
 				printf("%f\t",img[c][i][j]);
 			}
 			printf("\n");
 		}
 		printf("\n");
 	}
+
 	data dataIn;
 	dataIn.image = (float *)img; //return the result
+	dataIn.dim=dim;
+	dataIn.ch=ch;
 	masterOut.write(dataIn);
 
 	//core of the IP
@@ -85,6 +106,8 @@ void my_ip_hls(stream<data> &slaveIn,stream<data> &masterOut) {
 	//ip2ps_fifo(ip2psFifo,masterOut);
 
 	//printf("\nDone!!\n");
+
+	 */
 	return;
 
 }
