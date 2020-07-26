@@ -6,12 +6,16 @@
 using namespace hls;
 
 struct data{
-	float *image;
-	float *filter;
-	int  dim;
-	int   ch;
-	int   f_num;
-	int   f_dim;
+	int ch;
+	int dim;
+	int f_num;
+
+	//int f_dim; //always 3
+	//float *filter;
+	//int  dim;
+	//int   ch;
+	//int   f_num;
+	//int   f_dim;
 };
 
 
@@ -30,5 +34,5 @@ void rules(uint32 rule1,uint32 rule_2);
 void get_rules(uint32 &tmp,uint32 &tmp1);
 */
 
-void my_ip_hls(stream<data> &slaveIn,stream<data> &masterOut);
+void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &result, stream<data> &slaveIn);
 //void my_ip_hls();
