@@ -6,7 +6,13 @@
 using namespace hls;
 
 struct data{
-	float pixel;
+	int ch;
+	int dim;
+	int f_num;
+
+
+
+	//int f_dim; //always 3
 	//float *filter;
 	//int  dim;
 	//int   ch;
@@ -19,6 +25,8 @@ typedef ap_uint<32> uint32;
 typedef ap_uint<1> uint1;
 typedef ap_uint<2> uint2;
 
+#define F_DIM 2
+
 
 /*
 void ps2ip_fifo(stream<axiWord> &ps2ip,stream<axiWord> &ps2ipIntFifo);
@@ -30,5 +38,5 @@ void rules(uint32 rule1,uint32 rule_2);
 void get_rules(uint32 &tmp,uint32 &tmp1);
 */
 
-void my_ip_hls(stream<data> &slaveIn,stream<data> &masterOut);
+void my_ip_hls(stream<float> &image, stream<float> &filter,stream<float> &bias, stream<float> &result, stream<data> &slaveIn);
 //void my_ip_hls();
