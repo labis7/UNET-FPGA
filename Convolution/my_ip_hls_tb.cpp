@@ -8,12 +8,10 @@ using namespace hls;
 #include "my_ip_hls.hpp"
 
 
-#define STREAM_TEST_ITERATIONS 1
-
 int main() {
 
 
-	int ch=2;
+	int ch=4;
 	int dim = 8;
 	float img[ch][dim][dim];
 
@@ -86,13 +84,16 @@ int main() {
 		}
 		bias.write(0);
 	}
-	for(int c=0; c<ch ; c++)
+	for(int k=0; k < f_num;k++)
 	{
-		for(int i=0;i<dim;i++)
+		for(int c=0; c<ch ; c++)
 		{
-			for(int j=0;j<dim;j++)
+			for(int i=0;i<dim;i++)
 			{
-				image.write(img[c][i][j]);
+				for(int j=0;j<dim;j++)
+				{
+					image.write(img[c][i][j]);
+				}
 			}
 		}
 	}
