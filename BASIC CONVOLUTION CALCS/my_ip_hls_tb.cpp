@@ -13,9 +13,9 @@ using namespace hls;
 int main() {
 
 
-	int ch=4;
+	int ch=2;
 	int dim = 8;
-	float *img=(float *)malloc(ch*dim*dim*sizeof(float));
+	float img[ch][dim][dim];
 
 	int f_num;
 	f_num = 2;
@@ -32,20 +32,16 @@ int main() {
 				{
 					filt[k][c][i][j] = counter;
 					counter++;
-					//printf("%f\t",filt[k][c][i][j]);
 				}
-				//printf("\n");
 			}
-			//printf("\n");
 		}
-		//printf("\n");
 	}
 
 
 	for(int c=0; c<ch ; c++)
 		for(int i=0;i<dim;i++)
 			for(int j=0;j<dim;j++)
-				img[c*dim*dim+i*dim+j] = (i+1)*(j*2+1)*1.3 + c;
+				img[c][i][j] = (i+1)*(j*2+1)*1.3 + c;
 	printf("Before SEND:\n");
 	for(int c=0; c<ch ; c++)
 	{
@@ -53,7 +49,7 @@ int main() {
 		{
 			for(int j=0;j<dim;j++)
 			{
-				printf("%f\t",img[c*dim*dim+i*dim+j]);
+				printf("%f\t",img[c][i][j]);
 			}
 			printf("\n");
 		}
@@ -90,23 +86,21 @@ int main() {
 		}
 		bias.write(0);
 	}
-	/*
 	for(int c=0; c<ch ; c++)
 	{
 		for(int i=0;i<dim;i++)
 		{
 			for(int j=0;j<dim;j++)
 			{
-				image.write(img[c*ch*dim+i*dim+j]);
+				image.write(img[c][i][j]);
 			}
 		}
 	}
-	*/
 	//slaveIn.write(dataIn);
 
 
 
-	my_ip_hls(img,filter, bias,result,slaveIn);
+	my_ip_hls(image,filter, bias,result,slaveIn);
 
 
 	//allocate space for the result(known result dimensions)
