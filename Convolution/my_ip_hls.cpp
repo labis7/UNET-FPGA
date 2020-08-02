@@ -1,12 +1,15 @@
 #include "my_ip_hls.hpp"
 //static float img[270400];//130x130x16
 static float img_t[540800];//130x130x32
-static float filt[F_DIM][F_DIM];
+static float filt[F_DIM*F_DIM];
 static float res[128][128];
 //static float b[10];
 
-void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<float> &result, stream<data> &slaveIn) {
-#pragma HLS INTERFACE m_axi depth=1024 port=image bundle=inputs
+void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &result, stream<data> &slaveIn) {
+//#pragma HLS ARRAY_PARTITION variable=img_t cyclic factor=2 dim=1
+#pragma HLS INTERFACE m_axi depth=1024 port=image
+#pragma HLS INTERFACE m_axi depth=1024 port=filter
+
 //#pragma HLS INTERFACE m_axi depth=32 port=slaveIn
 //	void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, uint32 rule1,uint32 rule2) {
 //#pragma HLS INTERFACE s_axilite port=count_out bundle=rule_config
@@ -76,6 +79,7 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 	for(int i=0; i< ch; i++)
 	{
 #pragma HLS loop_tripcount min=256 max=256
+//#pragma HLS pipeline
 		for(int x = 0; x<pad ; x++)
 		{
 #pragma HLS loop_tripcount min=1 max=1
@@ -102,9 +106,14 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 #pragma HLS loop_tripcount min=256 max=256
 		for(int x=pad; x<(dim_t-pad); x++)
 #pragma HLS loop_tripcount min=10 max=10
-			for(int y=pad; y<(dim_t-pad); y++)
+			for(int y=pad; y<(dim_t-pad); y+=2)
+			{
 #pragma HLS loop_tripcount min=10 max=10
 				img_t[i*dim_t*dim_t + x*dim_t + y] = image[i*dim*dim + (x-pad)*dim + y-pad];
+				img_t[i*dim_t*dim_t + x*dim_t + y+1] = image[i*dim*dim + (x-pad)*dim + y+1-pad];
+
+			}
+
 
 
 
@@ -122,15 +131,19 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 			for(int y=0; y<o_dim; y++)
 #pragma HLS loop_tripcount min=8 max=8
 				res[x][y] = bias_t;
-		for(int j=0; j < ch ; j++)
+
+		for(int j=0; j < ch ; j++)   // Number of channels
 		{
 #pragma HLS loop_tripcount min=256 max=256
 			//load filter for the specific channel
-			for(int x=0; x<F_DIM; x++)
+			for(int x=0; x<F_DIM; x++){
 #pragma HLS loop_tripcount min=3 max=3
-				for(int y=0; y<F_DIM; y++)
-#pragma HLS loop_tripcount min=3 max=3
-					filt[x][y] = filter.read();
+				//for(int y=0; y<F_DIM; y++)
+//#pragma HLS loop_tripcount min=3 max=3
+			filt[x*3 +0] = filter[i*ch*9+j*9+x*3+0];
+			filt[x*3 +1] = filter[i*ch*9+j*9+x*3+1];
+			filt[x*3 +2] = filter[i*ch*9+j*9+x*3+2];
+			}
 
 
 
@@ -140,6 +153,7 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 			for(int x=0; x<o_dim; x++)//1 less iter, see below the last unrolled one
 			{
 #pragma HLS loop_tripcount min=8 max=8
+#pragma HLS pipeline
 				//////////////////////////////////////
 				for(int y=0; y<o_dim; y++)
 				{
@@ -160,18 +174,24 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 					float reg0 = res[x][y];
 					int k=x;
 					int l=y;
-					float reg1 = img_t[j*dim_t*dim_t+k*dim_t+l]*filt[k-x][l-y];
-					float reg2 = img_t[j*dim_t*dim_t+k*dim_t+l+1]*filt[k-x][l+1-y];
-					float reg3 = img_t[j*dim_t*dim_t+k*dim_t+l+2]*filt[k-x][l+2-y];
-					float reg4 = img_t[j*dim_t*dim_t+(k+1)*dim_t+l]*filt[k+1-x][l-y];
-					float reg5 = img_t[j*dim_t*dim_t+(k+1)*dim_t+l+1]*filt[k+1-x][l+1-y];
-					float reg6 = img_t[j*dim_t*dim_t+(k+1)*dim_t+l+2]*filt[k+1-x][l+2-y];
-					float reg7 = img_t[j*dim_t*dim_t+(k+2)*dim_t+l]*filt[k+2-x][l-y];
-					float reg8 = img_t[j*dim_t*dim_t+(k+2)*dim_t+l+1]*filt[k+2-x][l+1-y];
-					float reg9 = img_t[j*dim_t*dim_t+(k+2)*dim_t+l+2]*filt[k+2-x][l+2-y];
+					float reg1 = img_t[j*dim_t*dim_t+k*dim_t+l]*filt[(k-x)*3 + l-y];
+					float reg01=reg1+reg0;
+					float reg2 = img_t[j*dim_t*dim_t+k*dim_t+l+1]*filt[(k-x)*3 + l+1-y];
+					float reg3 = img_t[j*dim_t*dim_t+k*dim_t+l+2]*filt[(k-x)*3 + l+2-y];
+					float reg02=reg2+reg3;
+					float reg4 = img_t[j*dim_t*dim_t+(k+1)*dim_t+l]*filt[(k+1-x)*3 + l-y];
+					float reg5 = img_t[j*dim_t*dim_t+(k+1)*dim_t+l+1]*filt[(k+1-x)*3 + l+1-y];
+					float reg03=reg4+reg5;
+					float reg000=reg01+reg02+reg03;
+					float reg6 = img_t[j*dim_t*dim_t+(k+1)*dim_t+l+2]*filt[(k+1-x)*3 +l+2-y];
+					float reg7 = img_t[j*dim_t*dim_t+(k+2)*dim_t+l]*filt[(k+2-x)*3 +l-y];
+					float reg04=reg6+reg7;
+					float reg8 = img_t[j*dim_t*dim_t+(k+2)*dim_t+l+1]*filt[(k+2-x)*3 +l+1-y];
+					reg000 = reg000+reg8;
+					float reg9 = img_t[j*dim_t*dim_t+(k+2)*dim_t+l+2]*filt[(k+2-x)*3 +l+2-y];
+					reg01=reg000+reg04;
 
-
-					res[x][y] = reg0+ reg1+reg2+reg3+reg4+reg5+reg6+reg7+reg8+reg9;
+					res[x][y] = reg01+reg9;
 				}
 			}
 		}
