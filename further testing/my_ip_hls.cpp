@@ -108,6 +108,15 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 				img_t[i][x][y] = img[i][x-pad][y-pad];
 	}
 	*/
+	//init with zeros 1st row of linebuffer plus the 1st and last element(padding) for each row of  the linebuffer
+	for(int y=0; y<(dim_t); y++)
+		img_t0[y] = 0;
+	img_t2[0]=0;
+	img_t2[dim_t-1]=0;
+	img_t1[0]=0;
+	img_t1[dim_t-1]=0;
+	//memcpy(img_t1+1, image  , sizeof(float)*dim);
+
 
 	// Now we can start the convolution
 	float sum;
@@ -121,15 +130,9 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 		//printf("\n");
 		for(int j=0; j < ch ; j++)
 		{
-			//load the first 3 rows of the image
-			for(int y=0; y<(dim_t); y++)
-				img_t0[y] = 0;
-			for(int y=0; y<(dim_t); y++)
-				img_t1[y] = 0;
-			img_t2[0]=0;
-			img_t2[dim_t-1]=0;
-			memcpy(img_t2+1, image +j*dim*dim , sizeof(float)*dim);
-
+			//load the 3rd row of the image,assuming that the previous iteration completed the init(zeros 1st,end rows)
+			memcpy(img_t1+1, image +j*dim*dim , sizeof(float)*dim);
+			//memcpy(img_t2+1, image+j*dim*dim + 1*dim , sizeof(float)*dim);
 			//load the filter of this specific filter num and channel
 			for(int t=0;t<F_DIM;t++)
 			{
@@ -141,76 +144,41 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 				//printf("\n");
 			}
 			//printf("\n");
-			for(int x=0; x<o_dim; x++)
+			for(int x=0; x<o_dim-1; x++)
 			{
 
-				memcpy(img_t0+1, img_t1+1 , sizeof(float)*dim);
-				memcpy(img_t1+1, img_t2+1 , sizeof(float)*dim);
 				memcpy(img_t2+1, image+j*dim*dim +(x+1)*dim , sizeof(float)*dim);
-				/*
-				for(int t =0; t<dim_t;t++)
-					printf("%f ",img_t0[t]);
-				printf("\n");
-				for(int t =0; t<dim_t;t++)
-					printf("%f ",img_t1[t]);
-				printf("\n");
-				for(int t =0; t<dim_t;t++)
-					printf("%f ",img_t2[t]);
-				printf("\n");
-				*/
 
 
 				for(int y=0; y<o_dim; y++)
 				{
-					/*
-					for(int t =y; t<y+3;t++)
-						printf("%f ",img_t0[t]);
-					printf("\n");
-					for(int t =y; t<y+3;t++)
-						printf("%f ",img_t1[t]);
-					printf("\n");
-					for(int t =y; t<y+3;t++)
-						printf("%f ",img_t2[t]);
-					printf("\n");
-					printf("\n");
-					*/
 
-					//for(int t=0; t<F_DIM; t++)
-					//	for(int z=0; z<F_DIM; z++)
-					//		res[x][y]+=
 					for(int t =y; t<y+3;t++)
 						res[x][y]+=img_t0[t]*filt[i][j][0][t-y];
 					for(int t =y; t<y+3;t++)
 						res[x][y]+=img_t1[t]*filt[i][j][1][t-y];
 					for(int t =y; t<y+3;t++)
 						res[x][y]+=img_t2[t]*filt[i][j][2][t-y];
-
-
-					/*
-					float reg0=bias_t;
-					float reg1 = img_t0[y]*filt[i][j][0][0];
-					float reg01=reg1+reg0;
-					float reg2 = img_t0[y+1]*filt[i][j][0][1];
-					float reg3 = img_t0[y+2]*filt[i][j][0][2];
-					float reg02=reg2+reg3;
-					float reg4 = img_t1[y]*filt[i][j][1][0];
-					float reg5 = img_t1[y+1]*filt[i][j][1][1];
-					float reg03=reg4+reg5;
-					float reg000=reg0+reg01;
-					float reg001 =reg03+reg02;
-					float reg6 = img_t1[y+2]*filt[i][j][1][2];
-					float reg7 = img_t2[y]*filt[i][j][2][0];
-					float reg04=reg6+reg7;
-					float reg8 = img_t2[y+1]*filt[i][j][2][1];
-					reg000 = reg000+reg001;
-					reg001 = reg04 + reg8;
-					float reg9 = img_t2[y+2]*filt[i][j][2][2];
-					reg01=reg000+reg9;
-
-					 */
-					//res[x][y] = reg01+reg001;
 				}
+				memcpy(img_t0+1, img_t1+1 , sizeof(float)*dim);
+				memcpy(img_t1+1, img_t2+1 , sizeof(float)*dim);
 			}
+			//LAST ITER, the shift ups for 1st and 2nd rows are completed above
+			for(int y=1; y<(dim_t-1); y++)
+				img_t2[y] = 0;
+
+			for(int y=0; y<o_dim; y++)
+			{
+
+				for(int t =y; t<y+3;t++)
+					res[o_dim -1][y]+=img_t0[t]*filt[i][j][0][t-y];
+				for(int t =y; t<y+3;t++)
+					res[o_dim -1][y]+=img_t1[t]*filt[i][j][1][t-y];
+				for(int t =y; t<y+3;t++)
+					res[o_dim -1][y]+=img_t2[t]*filt[i][j][2][t-y];
+			}
+			for(int y=1; y<(dim_t-1); y++)
+				img_t0[y] = 0;
 		}
 		for(int x=0; x<o_dim; x++)
 			for(int y=0; y<o_dim; y++)
