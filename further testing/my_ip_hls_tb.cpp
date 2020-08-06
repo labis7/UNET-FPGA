@@ -19,7 +19,7 @@ int main() {
 
 	int f_num;
 	f_num = 2;
-	float filt[f_num][ch][F_DIM][F_DIM];
+	float *filt = (float *)malloc(f_num*ch*F_DIM*F_DIM*sizeof(float));
 	float b[f_num];
 	int counter=1;
 	for(int k=0; k < f_num;k++)
@@ -30,7 +30,7 @@ int main() {
 			{
 				for(int j=0;j < F_DIM;j++)
 				{
-					filt[k][c][i][j] = counter;
+					filt[k*ch*F_DIM*F_DIM+ c*F_DIM*F_DIM + i*F_DIM+j] = counter;
 					counter++;
 				}
 			}
@@ -72,8 +72,10 @@ int main() {
 	dataIn.dim =dim;
 	dataIn.f_num = f_num;
 	slaveIn.write(dataIn);
+
 	for(int k=0; k < f_num;k++)
 	{
+		/*
 		for(int c=0; c<ch ; c++)
 		{
 			for(int i=0;i<F_DIM;i++)
@@ -84,6 +86,7 @@ int main() {
 				}
 			}
 		}
+		*/
 		bias.write(0);
 	}
 	/*
@@ -102,7 +105,7 @@ int main() {
 
 
 
-	my_ip_hls(img,filter, bias,result,slaveIn);
+	my_ip_hls(img,filt, bias,result,slaveIn);
 
 
 	//allocate space for the result(known result dimensions)

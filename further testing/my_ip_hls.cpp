@@ -3,17 +3,18 @@
 static float img_t0[130*32];
 static float img_t1[130*32];
 static float img_t2[130*32];
-static float filt[10][10][F_DIM][F_DIM];
+static float filt[F_DIM*F_DIM];
 static float res[128][128];
 //static float b[10];
 
-void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<float> &result, stream<data> &slaveIn) {
+void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &result, stream<data> &slaveIn) {
 //#pragma HLS INTERFACE m_axi depth=32 port=slaveIn
 //	void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, uint32 rule1,uint32 rule2) {
 //#pragma HLS INTERFACE s_axilite port=count_out bundle=rule_config
 //#pragma HLS INTERFACE s_axilite port=rule1 bundle=rule_config
 //#pragma HLS INTERFACE s_axilite port=rule2 bundle=rule_config
-#pragma HLS INTERFACE m_axi depth=1024 port=image
+#pragma HLS INTERFACE m_axi depth=1024 port=image bundle = inputs
+#pragma HLS INTERFACE m_axi depth=1024 port=filter bundle = inputs
 /*
 #pragma HLS DATAFLOW interval=1
 #pragma HLS INTERFACE axis register both port=slaveIn
@@ -130,10 +131,11 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 		//printf("\n");
 		for(int j=0; j < ch ; j++)
 		{
-			//load the 3rd row of the image,assuming that the previous iteration completed the init(zeros 1st,end rows)
+			//load the 2nd row of the image,assuming that the previous iteration completed the init
 			memcpy(img_t1+1, image +j*dim*dim , sizeof(float)*dim);
 			//memcpy(img_t2+1, image+j*dim*dim + 1*dim , sizeof(float)*dim);
 			//load the filter of this specific filter num and channel
+			/*
 			for(int t=0;t<F_DIM;t++)
 			{
 				for(int z=0;z<F_DIM;z++)
@@ -144,6 +146,9 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 				//printf("\n");
 			}
 			//printf("\n");
+			*/
+			memcpy(filt, filter + i*ch*F_DIM*F_DIM + j*F_DIM*F_DIM , F_DIM*F_DIM*sizeof(float));
+
 			for(int x=0; x<o_dim-1; x++)
 			{
 
@@ -154,14 +159,19 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 				{
 
 					for(int t =y; t<y+3;t++)
-						res[x][y]+=img_t0[t]*filt[i][j][0][t-y];
+						res[x][y]+=img_t0[t]*filt[0 + (t-y)];
 					for(int t =y; t<y+3;t++)
-						res[x][y]+=img_t1[t]*filt[i][j][1][t-y];
+						res[x][y]+=img_t1[t]*filt[1*F_DIM + t-y];
 					for(int t =y; t<y+3;t++)
-						res[x][y]+=img_t2[t]*filt[i][j][2][t-y];
+						res[x][y]+=img_t2[t]*filt[2*F_DIM + t-y];
 				}
-				memcpy(img_t0+1, img_t1+1 , sizeof(float)*dim);
-				memcpy(img_t1+1, img_t2+1 , sizeof(float)*dim);
+				//memcpy(img_t0+1, img_t1+1 , sizeof(float)*dim);
+				//memcpy(img_t1+1, img_t2+1 , sizeof(float)*dim);
+				for(int y=1; y<(dim_t-1); y++)
+				{
+					img_t0[y] = img_t1[y];
+					img_t1[y] = img_t2[y];
+				}
 			}
 			//LAST ITER, the shift ups for 1st and 2nd rows are completed above
 			for(int y=1; y<(dim_t-1); y++)
@@ -171,11 +181,11 @@ void my_ip_hls(float *image, stream<float> &filter, stream<float> &bias, stream<
 			{
 
 				for(int t =y; t<y+3;t++)
-					res[o_dim -1][y]+=img_t0[t]*filt[i][j][0][t-y];
+					res[o_dim -1][y]+=img_t0[t]*filt[0*F_DIM + t-y];
 				for(int t =y; t<y+3;t++)
-					res[o_dim -1][y]+=img_t1[t]*filt[i][j][1][t-y];
+					res[o_dim -1][y]+=img_t1[t]*filt[1*F_DIM + t-y];
 				for(int t =y; t<y+3;t++)
-					res[o_dim -1][y]+=img_t2[t]*filt[i][j][2][t-y];
+					res[o_dim -1][y]+=img_t2[t]*filt[2*F_DIM + t-y];
 			}
 			for(int y=1; y<(dim_t-1); y++)
 				img_t0[y] = 0;
