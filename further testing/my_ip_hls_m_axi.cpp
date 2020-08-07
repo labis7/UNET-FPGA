@@ -1,27 +1,20 @@
 #include "my_ip_hls.hpp"
 //static float img[10][10][10];//130*32
-static float img_t0[130];
-static float img_t1[130];
-static float img_t2[130];
+static float img_t0[130*32];
+static float img_t1[130*32];
+static float img_t2[130*32];
 static float filt[F_DIM*F_DIM];
 static float res[128][128];
 //static float b[10];
 
 void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &result, stream<data> &slaveIn) {
-#pragma HLS ARRAY_PARTITION variable=filt cyclic factor=4 dim=1
-#pragma HLS ARRAY_PARTITION variable=img_t0 cyclic factor=2 dim=1
-#pragma HLS ARRAY_PARTITION variable=img_t1 cyclic factor=2 dim=1
-#pragma HLS ARRAY_PARTITION variable=img_t2 cyclic factor=2 dim=1
-
-
 //#pragma HLS INTERFACE m_axi depth=32 port=slaveIn
 //	void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, uint32 rule1,uint32 rule2) {
 //#pragma HLS INTERFACE s_axilite port=count_out bundle=rule_config
 //#pragma HLS INTERFACE s_axilite port=rule1 bundle=rule_config
 //#pragma HLS INTERFACE s_axilite port=rule2 bundle=rule_config
-#pragma HLS INTERFACE m_axi depth=1024 port=image //bundle = inputs
-#pragma HLS INTERFACE m_axi depth=1024 port=filter //bundle = inputs
-//#pragma HLS DATAFLOW interval=1
+#pragma HLS INTERFACE m_axi depth=1024 port=image bundle = inputs
+#pragma HLS INTERFACE m_axi depth=1024 port=filter bundle = inputs
 /*
 #pragma HLS DATAFLOW interval=1
 #pragma HLS INTERFACE axis register both port=slaveIn
@@ -119,7 +112,7 @@ void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &
 	//init with zeros 1st row of linebuffer plus the 1st and last element(padding) for each row of  the linebuffer
 	for(int y=0; y<(dim_t); y++)
 #pragma HLS loop_tripcount min=320 max=320
-//#pragma HLS pipeline
+#pragma HLS pipeline
 		img_t0[y] = 0;
 	img_t2[0]=0;
 	img_t2[dim_t-1]=0;
@@ -136,7 +129,6 @@ void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &
 		float bias_t = bias.read();
 		for(int x=0; x<o_dim; x++)
 		{
-#pragma HLS pipeline
 #pragma HLS loop_tripcount min=240 max=240
 			for(int y=0; y<o_dim; y++)
 #pragma HLS loop_tripcount min=320 max=320
@@ -146,9 +138,7 @@ void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &
 		//printf("\n");
 		for(int j=0; j < ch ; j++)
 		{
-
 #pragma HLS loop_tripcount min=1 max=1
-
 			//load the 2nd row of the image,assuming that the previous iteration completed the init
 			memcpy(img_t1+1, image +j*dim*dim , sizeof(float)*320);
 			//memcpy(img_t2+1, image+j*dim*dim + 1*dim , sizeof(float)*dim);
@@ -167,101 +157,60 @@ void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &
 			*/
 			memcpy(filt, filter + i*ch*F_DIM*F_DIM + j*F_DIM*F_DIM , 9*sizeof(float));
 
-
-
-
 			for(int x=0; x<o_dim-1; x++)
 			{
-//#pragma HLS pipeline
 #pragma HLS loop_tripcount min=239 max=239
 				memcpy(img_t2+1, image+j*dim*dim +(x+1)*dim , sizeof(float)*320);
 
-				int offset1,offset2;
-				offset1 = 1;
-				offset2 = 2;
+
 				for(int y=0; y<o_dim; y++)
 				{
-#pragma HLS pipeline
 #pragma HLS loop_tripcount min=320 max=320
-
-					float reg0 = img_t0[y]*filt[0];
-					float reg1 = img_t0[offset1]*filt[1];
-					float reg01 = reg0+reg1;
-					float reg2 = img_t0[offset2]*filt[2];
-					float reg3 = img_t1[y]*filt[3];
-					float reg02= reg2+reg3;
-					float reg4 = img_t1[offset1]*filt[4];
-					float reg5 = img_t1[offset2]*filt[5];
-					reg01 = reg01 + reg02;
-					float reg03= reg4+reg5;
-					float reg6 = img_t2[y]*filt[6];
-					float reg7 = img_t2[offset1]*filt[7];
-					float reg04= reg6+reg7;
-					offset1 = y+2;
-					float reg8 = img_t2[offset2]*filt[8];
-					offset2 =y+ 3;
-					reg01 = reg01+reg03;
-					res[x][y]+= reg04+reg8 + reg01;
+					for(int t =y; t<y+3;t++)
+#pragma HLS loop_tripcount min=3 max=3
+						res[x][y]+=img_t0[t]*filt[0 + (t-y)];
+					for(int t =y; t<y+3;t++)
+#pragma HLS loop_tripcount min=3 max=3
+						res[x][y]+=img_t1[t]*filt[1*F_DIM + t-y];
+					for(int t =y; t<y+3;t++)
+#pragma HLS loop_tripcount min=3 max=3
+						res[x][y]+=img_t2[t]*filt[2*F_DIM + t-y];
 				}
 				//memcpy(img_t0+1, img_t1+1 , sizeof(float)*dim);
 				//memcpy(img_t1+1, img_t2+1 , sizeof(float)*dim);
-				for(int y=1; y<(dim_t-1); y+=2)
+				for(int y=1; y<(dim_t-1); y++)
 				{
 #pragma HLS loop_tripcount min=318 max=318
-#pragma HLS pipeline
 					img_t0[y] = img_t1[y];
 					img_t1[y] = img_t2[y];
-					img_t0[y+1] = img_t1[y+1];
-					img_t1[y+1] = img_t2[y+1];
 				}
 			}
 			//LAST ITER, the shift ups for 1st and 2nd rows are completed above
 			for(int y=1; y<(dim_t-1); y++)
 #pragma HLS loop_tripcount min=318 max=318
-#pragma HLS pipeline
 				img_t2[y] = 0;
 
-			int offset1,offset2;
-			offset1 = 1;
-			offset2 = 2;
 			for(int y=0; y<o_dim; y++)
 			{
 #pragma HLS loop_tripcount min=320 max=320
-#pragma HLS pipeline
-				//for(int t =y; t<y+3;t++)
-					//res[o_dim -1][y]+=img_t0[t]*filt[0*F_DIM + t-y];
-
-				float reg0 = img_t0[y]*filt[0];
-				float reg1 = img_t0[offset1]*filt[1];
-				float reg01 = reg0+reg1;
-				float reg2 = img_t0[offset2]*filt[2];
-				float reg3 = img_t1[y]*filt[3];
-				float reg02= reg2+reg3;
-				float reg4 = img_t1[offset1]*filt[4];
-				float reg5 = img_t1[offset2]*filt[5];
-				reg01 = reg01 + reg02;
-				float reg03= reg4+reg5;
-				float reg6 = img_t2[y]*filt[6];
-				float reg7 = img_t2[offset1]*filt[7];
-				float reg04= reg6+reg7;
-				offset1 = y+2;
-				float reg8 = img_t2[offset2]*filt[8];
-				offset2 = y+3;
-				reg01 = reg01+reg03;
-				res[o_dim -1][y]+= reg04+reg8 + reg01;
-
+				for(int t =y; t<y+3;t++)
+#pragma HLS loop_tripcount min=3 max=3
+					res[o_dim -1][y]+=img_t0[t]*filt[0*F_DIM + t-y];
+				for(int t =y; t<y+3;t++)
+#pragma HLS loop_tripcount min=3 max=3
+					res[o_dim -1][y]+=img_t1[t]*filt[1*F_DIM + t-y];
+				for(int t =y; t<y+3;t++)
+#pragma HLS loop_tripcount min=3 max=3
+					res[o_dim -1][y]+=img_t2[t]*filt[2*F_DIM + t-y];
 			}
 			for(int y=1; y<(dim_t-1); y++)
 #pragma HLS loop_tripcount min=320 max=320
-#pragma HLS pipeline
 				img_t0[y] = 0;
 		}
 		for(int x=0; x<o_dim; x++)
 #pragma HLS loop_tripcount min=240 max=240
-#pragma HLS pipeline
 			for(int y=0; y<o_dim; y++)
 #pragma HLS loop_tripcount min=320 max=320
-
 				result.write(res[x][y]);
 
 	}
