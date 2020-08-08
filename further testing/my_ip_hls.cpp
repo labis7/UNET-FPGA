@@ -7,7 +7,10 @@ static float filt[F_DIM*F_DIM];
 static float res[128][128];
 //static float b[10];
 
-void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &result, stream<data> &slaveIn) {
+void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias, stream<float> &result, stream<data> &slaveIn) {
+#pragma HLS INTERFACE axis register both port=image bundle=inputs
+#pragma HLS INTERFACE axis register both port=filter bundle=inputs
+
 #pragma HLS ARRAY_PARTITION variable=filt cyclic factor=4 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t0 cyclic factor=2 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t1 cyclic factor=2 dim=1
@@ -19,8 +22,8 @@ void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &
 //#pragma HLS INTERFACE s_axilite port=count_out bundle=rule_config
 //#pragma HLS INTERFACE s_axilite port=rule1 bundle=rule_config
 //#pragma HLS INTERFACE s_axilite port=rule2 bundle=rule_config
-#pragma HLS INTERFACE m_axi depth=1024 port=image //bundle = inputs
-#pragma HLS INTERFACE m_axi depth=1024 port=filter //bundle = inputs
+//#pragma HLS INTERFACE m_axi depth=1024 port=image //bundle = inputs
+//#pragma HLS INTERFACE m_axi depth=1024 port=filter //bundle = inputs
 //#pragma HLS DATAFLOW interval=1
 /*
 #pragma HLS DATAFLOW interval=1
@@ -150,8 +153,14 @@ void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &
 #pragma HLS loop_tripcount min=1 max=1
 
 			//load the 2nd row of the image,assuming that the previous iteration completed the init
-			memcpy(img_t1+1, image +j*dim*dim , sizeof(float)*320);
-			//memcpy(img_t2+1, image+j*dim*dim + 1*dim , sizeof(float)*dim);
+			//memcpy(img_t1+1, image +j*dim*dim , sizeof(float)*320);
+			for(int z = 1 ; z<dim_t-1; z++)
+#pragma HLS loop_tripcount min=320 max=320
+				img_t1[z] = image.read();
+
+
+
+
 			//load the filter of this specific filter num and channel
 			/*
 			for(int t=0;t<F_DIM;t++)
@@ -165,8 +174,10 @@ void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &
 			}
 			//printf("\n");
 			*/
-			memcpy(filt, filter + i*ch*F_DIM*F_DIM + j*F_DIM*F_DIM , 9*sizeof(float));
-
+			//memcpy(filt, filter + i*ch*F_DIM*F_DIM + j*F_DIM*F_DIM , 9*sizeof(float));
+			for(int z =0 ; z<9 ;z++)
+#pragma HLS loop_tripcount min=9 max=9
+				filt[z] = filter.read();
 
 
 
@@ -174,7 +185,12 @@ void my_ip_hls(float *image, float *filter, stream<float> &bias, stream<float> &
 			{
 //#pragma HLS pipeline
 #pragma HLS loop_tripcount min=239 max=239
-				memcpy(img_t2+1, image+j*dim*dim +(x+1)*dim , sizeof(float)*320);
+				//memcpy(img_t2+1, image+j*dim*dim +(x+1)*dim , sizeof(float)*320);
+				for(int z = 1 ; z<dim_t-1; z++)
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=320 max=320
+					img_t2[z] = image.read();
+
 
 				int offset1,offset2;
 				offset1 = 1;

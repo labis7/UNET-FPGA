@@ -75,18 +75,28 @@ int main() {
 
 	for(int k=0; k < f_num;k++)
 	{
-		/*
+
 		for(int c=0; c<ch ; c++)
 		{
 			for(int i=0;i<F_DIM;i++)
 			{
 				for(int j=0;j<F_DIM;j++)
 				{
-					filter.write(filt[k][c][i][j]);
+					filter.write(filt[k*ch*F_DIM*F_DIM+ c*F_DIM*F_DIM + i*F_DIM+j]);
 				}
 			}
 		}
-		*/
+
+		for(int c=0; c<ch ; c++)
+		{
+			for(int i=0;i<dim;i++)
+			{
+				for(int j=0;j<dim;j++)
+				{
+					image.write(img[c*dim*dim+i*dim+j]);
+				}
+			}
+		}
 		bias.write(0);
 	}
 	/*
@@ -105,7 +115,7 @@ int main() {
 
 
 
-	my_ip_hls(img,filt, bias,result,slaveIn);
+	my_ip_hls(image,filter, bias,result,slaveIn);
 
 
 	//allocate space for the result(known result dimensions)
