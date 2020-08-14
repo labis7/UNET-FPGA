@@ -1,8 +1,9 @@
 #include "my_ip_hls.hpp"
 
 static float img[64]; //per channel calc,then save
-static float res[128*128];//+2 happens when we have pad==1, we need a temporary matrix
-static float filt[F_DIM*F_DIM];
+static float res_0[128];
+static float res_1[128];
+static float filt[256*F_DIM*F_DIM];//all channels per filter reading
 //static float b[1];
 /* max size
 static float img[10][10][10];
@@ -11,6 +12,12 @@ static float filt[10][10][F_DIM][F_DIM];
 static float b[10];
 */
 void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias, stream<float> &result, stream<data> &slaveIn) {
+#pragma HLS INTERFACE axis register both port=filter
+#pragma HLS INTERFACE axis register both port=image
+//#pragma HLS ARRAY_PARTITION variable=filt cyclic factor=4 dim=1
+#pragma HLS ARRAY_PARTITION variable=res_1 cyclic factor=2 dim=1
+#pragma HLS ARRAY_PARTITION variable=res_0 cyclic factor=2 dim=1
+//#pragma HLS ARRAY_PARTITION variable=img cyclic factor=2 dim=1
 //#pragma HLS INTERFACE m_axi depth=32 port=slaveIn
 //	void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, uint32 rule1,uint32 rule2) {
 //#pragma HLS INTERFACE s_axilite port=count_out bundle=rule_config
@@ -57,29 +64,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 	ch = dataOut.ch;
 	dim = dataOut.dim;
 	f_num = dataOut.f_num;
-/*
-	for(int c=0; c<ch ; c++)
-		for(int i=0;i<dim;i++)
-			for(int j=0;j<dim;j++)
-				image.read(img[c][i][j]);
 
-
-
-	for(int k = 0 ; k< f_num; k++)
-	{
-		for(int c=0; c<ch ; c++)
-		{
-			for(int i=0;i<F_DIM;i++)
-			{
-				for(int j=0;j<F_DIM;j++)
-				{
-					filter.read(filt[k][c][i][j]);
-				}
-			}
-		}
-		bias.read(b[k]);
-	}
-*/
 
 
 
@@ -95,83 +80,96 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 	// Now we can start the transposed convolution(calculate every channel then add to receive the num_f=o_ch result)
 	for (int i=0; i<f_num; i++)//number of filters/o_ch
 	{
+#pragma HLS loop_tripcount min=16 max=16
+#pragma HLS pipeline
 		//read bias and init res with these values for each filter/o_ch
 		bias.read(bias_t);
-		for(int i=0; i<o_dim ; i++)
-			for(int j=0;j<o_dim;j++)
-				res[i*o_dim + j] = bias_t;
-		for(int j=0; j < ch ; j++)
-		{
-			//load the filter of specific channel and filter number
+
+		////////////////////////////////////
+
+		///////////////load all channel kernels for the current filter
+		for (int c=0; c<ch; c++)
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=32 max=32
 			for(int k =0; k<F_DIM; k++)
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=2 max=2
 				for(int l=0;l<F_DIM;l++)
-					filter.read(filt[k*F_DIM + l]);
-			//for every input pixel
-			for(int x=0; x<dim; x++)
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=2 max=2
+					filter.read(filt[c*ch*F_DIM*F_DIM + k*F_DIM + l]);
+		///////////////////////////////////////
+
+
+
+		//for every input row
+		for(int x=0; x<dim; x++)
+		{
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=64 max=64
+		//OR read the whole filter for this filternum(for every channel)
+		/////
+			//init 2 first res rows
+			for(int j=0;j<o_dim;j++)
+#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS pipeline
+				res_0[j] = bias_t;
+			for(int j=0;j<o_dim;j++)
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=128 max=128
+				res_1[j] = bias_t;
+
+
+			for(int j=0; j < ch ; j++)
 			{
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=32 max=32
+
 				//load the x row of the input image of the channel j
 				for(int l=0;l<dim;l++)
+#pragma HLS loop_tripcount min=64 max=64
+#pragma HLS pipeline
 					image.read(img[l]);
 				for(int y=0; y<dim; y++)
 				{
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=64 max=64
 					//making a window by mult 1 element of image with the whole kernel
+
+					////for each element in col calculate res.
+
+//#pragma HLS pipeline
+//#pragma HLS loop_tripcount min=2 max=2
 					//for each element in row calculate res.
-					for(int k=0; k<F_DIM; k++)
-					{
-						for(int l =0 ; l<F_DIM; l++)
-						{
-							res[(x*s+k)*o_dim + (y*s+l)] += img[y]*filt[k*F_DIM + l];
-						}
-					}
+					res_0[y*s] += img[y]*filt[j*ch*F_DIM*F_DIM  ];
+					res_1[y*s] += img[y]*filt[j*ch*F_DIM*F_DIM + F_DIM ];
+					res_0[y*s+1] += img[y]*filt[j*ch*F_DIM*F_DIM  + 1];
+					res_1[y*s+1] += img[y]*filt[j*ch*F_DIM*F_DIM + F_DIM + 1];
+
+
 				}
 			}
-		}
-		//the current o_ch is completed
-		for(int i=0; i<o_dim ; i++)
+
+			//now 2 output lines are ready to stream them back
+			//the current o_ch is completed
 			for(int j=0;j<o_dim;j++)
-				result.write(res[i*o_dim + j]);
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=128 max=128
+				result.write(res_0[j]);
+			for(int j=0;j<o_dim;j++)
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=128 max=128
+				result.write(res_1[j]);
+
+
+
+		}
 	}
 
 
 
 /////////////////////////////////////////////////////////////////////////////////
-/*
 
-	printf("SENDIND BACK:\n");
-	for(int k = 0 ; k< f_num; k++)
-	{
-		for(int c=0; c<ch ; c++)
-		{
-			for(int i=0;i<3;i++)
-			{
-				for(int j=0;j<3;j++)
-				{
-					//img[c][i][j] = img[c][i][j] +5;
-					printf("%f\t",filt[k][c][i][j]);
-				}
-				printf("\n");
-			}
-			printf("\n");
-		}
-		printf("\n");
-	}
-
-	data dataIn;
-	dataIn.image = (float *)img; //return the result
-	dataIn.dim=dim;
-	dataIn.ch=ch;
-	masterOut.write(dataIn);
-
-	//core of the IP
-	//uint32 tmp,tmp1;
-	//get_rules(tmp,tmp1);
-	//core(ps2ipFifo,ip2psFifo, tmp,tmp1);
-	//fifo that keeps output data
-	//ip2ps_fifo(ip2psFifo,masterOut);
-
-	//printf("\nDone!!\n");
-
-	 */
 	return;
 
 }

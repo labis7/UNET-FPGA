@@ -87,9 +87,9 @@ int main() {
 			}
 		}
 
-		for(int c=0; c<ch ; c++)
+		for(int i=0;i<dim;i++)
 		{
-			for(int i=0;i<dim;i++)
+			for(int c=0; c<ch ; c++)
 			{
 				for(int j=0;j<dim;j++)
 				{

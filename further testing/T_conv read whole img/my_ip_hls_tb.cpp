@@ -87,17 +87,19 @@ int main() {
 			}
 		}
 
-		for(int c=0; c<ch ; c++)
+
+		bias.write(0);
+	}
+
+	for(int c=0; c<ch ; c++)
+	{
+		for(int i=0;i<dim;i++)
 		{
-			for(int i=0;i<dim;i++)
+			for(int j=0;j<dim;j++)
 			{
-				for(int j=0;j<dim;j++)
-				{
-					image.write(img[c*dim*dim+i*dim+j]);
-				}
+				image.write(img[c*dim*dim+i*dim+j]);
 			}
 		}
-		bias.write(0);
 	}
 	/*
 	for(int c=0; c<ch ; c++)
