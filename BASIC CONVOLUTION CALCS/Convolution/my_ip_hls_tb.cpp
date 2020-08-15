@@ -15,11 +15,11 @@ int main() {
 
 	int ch=4;
 	int dim = 8;
-	float *img=(float *)malloc(ch*dim*dim*sizeof(float));
+	float img[ch][dim][dim];
 
 	int f_num;
 	f_num = 2;
-	float *filt = (float *)malloc(f_num*ch*F_DIM*F_DIM*sizeof(float));
+	float filt[f_num][ch][F_DIM][F_DIM];
 	float b[f_num];
 	int counter=1;
 	for(int k=0; k < f_num;k++)
@@ -30,7 +30,7 @@ int main() {
 			{
 				for(int j=0;j < F_DIM;j++)
 				{
-					filt[k*ch*F_DIM*F_DIM+ c*F_DIM*F_DIM + i*F_DIM+j] = counter;
+					filt[k][c][i][j] = counter;
 					counter++;
 				}
 			}
@@ -41,7 +41,7 @@ int main() {
 	for(int c=0; c<ch ; c++)
 		for(int i=0;i<dim;i++)
 			for(int j=0;j<dim;j++)
-				img[c*dim*dim+i*dim+j] = (i+1)*(j*2+1)*1.3 + c;
+				img[c][i][j] = (i+1)*(j*2+1)*1.3 + c;
 	printf("Before SEND:\n");
 	for(int c=0; c<ch ; c++)
 	{
@@ -49,7 +49,7 @@ int main() {
 		{
 			for(int j=0;j<dim;j++)
 			{
-				printf("%f\t",img[c*dim*dim+i*dim+j]);
+				printf("%f\t",img[c][i][j]);
 			}
 			printf("\n");
 		}
@@ -72,34 +72,20 @@ int main() {
 	dataIn.dim =dim;
 	dataIn.f_num = f_num;
 	slaveIn.write(dataIn);
-
 	for(int k=0; k < f_num;k++)
 	{
-
 		for(int c=0; c<ch ; c++)
 		{
 			for(int i=0;i<F_DIM;i++)
 			{
 				for(int j=0;j<F_DIM;j++)
 				{
-					filter.write(filt[k*ch*F_DIM*F_DIM+ c*F_DIM*F_DIM + i*F_DIM+j]);
-				}
-			}
-		}
-
-		for(int c=0; c<ch ; c++)
-		{
-			for(int i=0;i<dim;i++)
-			{
-				for(int j=0;j<dim;j++)
-				{
-					image.write(img[c*dim*dim+i*dim+j]);
+					filter.write(filt[k][c][i][j]);
 				}
 			}
 		}
 		bias.write(0);
 	}
-	/*
 	for(int c=0; c<ch ; c++)
 	{
 		for(int i=0;i<dim;i++)
@@ -110,7 +96,6 @@ int main() {
 			}
 		}
 	}
-	*/
 	//slaveIn.write(dataIn);
 
 

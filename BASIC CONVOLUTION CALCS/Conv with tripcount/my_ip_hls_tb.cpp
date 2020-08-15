@@ -13,7 +13,7 @@ using namespace hls;
 int main() {
 
 
-	int ch=2;
+	int ch=4;
 	int dim = 8;
 	float img[ch][dim][dim];
 

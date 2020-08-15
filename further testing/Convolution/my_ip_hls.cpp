@@ -121,7 +121,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 	*/
 	//init with zeros 1st row of linebuffer plus the 1st and last element(padding) for each row of  the linebuffer
 	for(int y=0; y<(dim_t); y++)
-#pragma HLS loop_tripcount min=320 max=320
+#pragma HLS loop_tripcount min=130 max=130
 //#pragma HLS pipeline
 		img_t0[y] = 0;
 	img_t2[0]=0;
@@ -135,14 +135,14 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 	float sum;
 	for (int i=0; i<f_num; i++)//number of filters
 	{
-#pragma HLS loop_tripcount min=1 max=1
+#pragma HLS loop_tripcount min=16 max=16
 		float bias_t = bias.read();
 		for(int x=0; x<o_dim; x++)
 		{
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=240 max=240
+#pragma HLS loop_tripcount min=128 max=128
 			for(int y=0; y<o_dim; y++)
-#pragma HLS loop_tripcount min=320 max=320
+#pragma HLS loop_tripcount min=128 max=128
 				res[x][y] = bias_t;
 		}
 		//seeking on the temp image sub array that we want to mult item wise and then add them for the (x,y) result
@@ -150,12 +150,12 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 		for(int j=0; j < ch ; j++)
 		{
 
-#pragma HLS loop_tripcount min=1 max=1
+#pragma HLS loop_tripcount min=32 max=32
 
 			//load the 2nd row of the image,assuming that the previous iteration completed the init
 			//memcpy(img_t1+1, image +j*dim*dim , sizeof(float)*320);
 			for(int z = 1 ; z<dim_t-1; z++)
-#pragma HLS loop_tripcount min=320 max=320
+#pragma HLS loop_tripcount min=128 max=128
 				img_t1[z] = image.read();
 
 
@@ -184,11 +184,11 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 			for(int x=0; x<o_dim-1; x++)
 			{
 //#pragma HLS pipeline
-#pragma HLS loop_tripcount min=239 max=239
+#pragma HLS loop_tripcount min=127 max=127
 				//memcpy(img_t2+1, image+j*dim*dim +(x+1)*dim , sizeof(float)*320);
 				for(int z = 1 ; z<dim_t-1; z++)
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=320 max=320
+#pragma HLS loop_tripcount min=128 max=128
 					img_t2[z] = image.read();
 
 
@@ -198,7 +198,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 				for(int y=0; y<o_dim; y++)
 				{
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=320 max=320
+#pragma HLS loop_tripcount min=128 max=128
 
 					float reg0 = img_t0[y]*filt[0];
 					float reg1 = img_t0[offset1]*filt[1];
@@ -223,7 +223,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 				//memcpy(img_t1+1, img_t2+1 , sizeof(float)*dim);
 				for(int y=1; y<(dim_t-1); y+=2)
 				{
-#pragma HLS loop_tripcount min=318 max=318
+#pragma HLS loop_tripcount min=128 max=128
 #pragma HLS pipeline
 					img_t0[y] = img_t1[y];
 					img_t1[y] = img_t2[y];
@@ -233,7 +233,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 			}
 			//LAST ITER, the shift ups for 1st and 2nd rows are completed above
 			for(int y=1; y<(dim_t-1); y++)
-#pragma HLS loop_tripcount min=318 max=318
+#pragma HLS loop_tripcount min=128 max=128
 #pragma HLS pipeline
 				img_t2[y] = 0;
 
@@ -242,7 +242,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 			offset2 = 2;
 			for(int y=0; y<o_dim; y++)
 			{
-#pragma HLS loop_tripcount min=320 max=320
+#pragma HLS loop_tripcount min=128 max=128
 #pragma HLS pipeline
 				//for(int t =y; t<y+3;t++)
 					//res[o_dim -1][y]+=img_t0[t]*filt[0*F_DIM + t-y];
@@ -268,15 +268,15 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 
 			}
 			for(int y=1; y<(dim_t-1); y++)
-#pragma HLS loop_tripcount min=320 max=320
+#pragma HLS loop_tripcount min=128 max=128
 #pragma HLS pipeline
 				img_t0[y] = 0;
 		}
 		for(int x=0; x<o_dim; x++)
-#pragma HLS loop_tripcount min=240 max=240
+#pragma HLS loop_tripcount min=128 max=128
 #pragma HLS pipeline
 			for(int y=0; y<o_dim; y++)
-#pragma HLS loop_tripcount min=320 max=320
+#pragma HLS loop_tripcount min=128 max=128
 
 				result.write(res[x][y]);
 
