@@ -15,11 +15,11 @@ int main() {
 
 	int ch=4;
 	int dim = 4;
-	float img[ch][dim][dim];
+	float *img=(float *)malloc(ch*dim*dim*sizeof(float));
 
 	int f_num;
 	f_num = 2;
-	float filt[f_num][ch][F_DIM][F_DIM];
+	float *filt = (float *)malloc(f_num*ch*F_DIM*F_DIM*sizeof(float));
 	float b[f_num];
 	int counter=1;
 	for(int k=0; k < f_num;k++)
@@ -30,7 +30,7 @@ int main() {
 			{
 				for(int j=0;j < F_DIM;j++)
 				{
-					filt[k][c][i][j] = counter;
+					filt[k*ch*F_DIM*F_DIM+ c*F_DIM*F_DIM + i*F_DIM+j] = counter;
 					counter++;
 				}
 			}
@@ -41,7 +41,7 @@ int main() {
 	for(int c=0; c<ch ; c++)
 		for(int i=0;i<dim;i++)
 			for(int j=0;j<dim;j++)
-				img[c][i][j] = (i+1)*(j*2+1)*1.3 + c;
+				img[c*dim*dim+i*dim+j] = (i+1)*(j*2+1)*1.3 + c;
 	printf("Before SEND:\n");
 	for(int c=0; c<ch ; c++)
 	{
@@ -49,7 +49,7 @@ int main() {
 		{
 			for(int j=0;j<dim;j++)
 			{
-				printf("%f\t",img[c][i][j]);
+				printf("%f\t",img[c*dim*dim+i*dim+j]);
 			}
 			printf("\n");
 		}
@@ -72,33 +72,47 @@ int main() {
 	dataIn.dim =dim;
 	dataIn.f_num = f_num;
 	slaveIn.write(dataIn);
+
 	for(int k=0; k < f_num;k++)
 	{
+
 		for(int c=0; c<ch ; c++)
 		{
 			for(int i=0;i<F_DIM;i++)
 			{
 				for(int j=0;j<F_DIM;j++)
 				{
-					filter.write(filt[k][c][i][j]);
+					filter.write(filt[k*ch*F_DIM*F_DIM+ c*F_DIM*F_DIM + i*F_DIM+j]);
 				}
 			}
 		}
+
+
 		bias.write(0);
 	}
-	for(int k=0; k < f_num;k++)
+
+	for(int c=0; c<ch ; c++)
 	{
-		for(int c=0; c<ch ; c++)
+		for(int i=0;i<dim;i++)
 		{
-			for(int i=0;i<dim;i++)
+			for(int j=0;j<dim;j++)
 			{
-				for(int j=0;j<dim;j++)
-				{
-					image.write(img[c][i][j]);
-				}
+				image.write(img[c*dim*dim+i*dim+j]);
 			}
 		}
 	}
+	/*
+	for(int c=0; c<ch ; c++)
+	{
+		for(int i=0;i<dim;i++)
+		{
+			for(int j=0;j<dim;j++)
+			{
+				image.write(img[c][i][j]);
+			}
+		}
+	}
+	*/
 	//slaveIn.write(dataIn);
 
 
@@ -107,7 +121,7 @@ int main() {
 
 
 	//allocate space for the result(known result dimensions)
-	int o_dim = dim*2;
+	int o_dim = dim*2; //transposed
 	int o_ch = f_num;
 	float res[o_ch][o_dim][o_dim];
 	////////////////////////////////////
@@ -151,9 +165,7 @@ int main() {
 	masterOut.read(dataOut);
 	float ret[ch][dim][dim];
 	memcpy(ret,dataOut.image , ch*dim*dim*sizeof(float)); //WARNING,IF I DO memcpy(tmp,res) first item(0,0) will fail
-
 	//printf("%d: read data: %u\n",(int)i, (int)dataOut.data);
-
 	printf("\nAfter Processing, Channels:%d , Res: %dx%d\n",dataOut.ch,dataOut.dim,dataOut.dim);
 	for(int c=0; c<ch ; c++)
 	{
@@ -167,9 +179,7 @@ int main() {
 		}
 		printf("\n");
 	}
-
 	//printf("\n%d\n",(int)count_out);
-
 	printf("\n\nNo segmentation Problems\nFinishing . . .");
 	*/
 	return 0;
