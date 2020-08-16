@@ -135,6 +135,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 	float sum;
 	for (int i=0; i<f_num; i++)//number of filters
 	{
+
 #pragma HLS loop_tripcount min=16 max=16
 		float bias_t = bias.read();
 		for(int x=0; x<o_dim; x++)
@@ -191,51 +192,43 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 #pragma HLS loop_tripcount min=128 max=128
 					img_t2[z] = image.read();
 
-
-				int offset1,offset2;
-				offset1 = 1;
-				offset2 = 2;
 				for(int y=0; y<o_dim; y+=2)
 				{
 #pragma HLS pipeline
 #pragma HLS loop_tripcount min=64 max=64
 
 					float reg0 = img_t0[y]*filt[0];
-					float reg1 = img_t0[offset1]*filt[1];
+					float reg1 = img_t0[y+1]*filt[1];
 					float reg01 = reg0+reg1;
-					float reg2 = img_t0[offset2]*filt[2];
+					float reg2 = img_t0[y+2]*filt[2];
 					float reg3 = img_t1[y]*filt[3];
 					float reg02= reg2+reg3;
-					float reg4 = img_t1[offset1]*filt[4];
-					float reg5 = img_t1[offset2]*filt[5];
+					float reg4 = img_t1[y+1]*filt[4];
+					float reg5 = img_t1[y+2]*filt[5];
 					reg01 = reg01 + reg02;
 					float reg03= reg4+reg5;
 					float reg6 = img_t2[y]*filt[6];
-					float reg7 = img_t2[offset1]*filt[7];
+					float reg7 = img_t2[y+1]*filt[7];
 					float reg04= reg6+reg7;
-					offset1 = y+2;
-					float reg8 = img_t2[offset2]*filt[8];
+					float reg8 = img_t2[y+2]*filt[8];
 					reg0 = img_t0[y+1]*filt[0];
-					offset2 =y+ 3;
 					reg01 = reg01+reg03;
-					reg1 = img_t0[offset1]*filt[1];
+					reg1 = img_t0[y+2]*filt[1];
 					float reg001 = reg0 +reg1;
-					reg2 = img_t0[offset2]*filt[2];
+					reg2 = img_t0[y+3]*filt[2];
 					float res1 =reg04+reg8;
 					reg3 = img_t1[y+1]*filt[3];
 					float reg002 = reg2 + reg3;
-					reg4 = img_t1[offset1]*filt[4];
-					reg5 = img_t1[offset2]*filt[5];
+					reg4 = img_t1[y+2]*filt[4];
+					reg5 = img_t1[y+3]*filt[5];
 					float reg012 = reg001+reg002;
 					float reg003 =reg4+reg5;
 					reg6 =img_t2[y+1]*filt[6];
 					res1 = res1 + reg01;
-					reg7 = img_t2[offset1]*filt[7];
+					reg7 = img_t2[y+2]*filt[7];
 					float reg004 = reg6+reg7;
-					offset1 = y+3;
 					float reg034 = reg003 +reg004;
-					reg8 = img_t2[offset2]*filt[8];
-					offset2 =y+ 4;
+					reg8 = img_t2[y+3]*filt[8];
 					res[x][y]+=  res1;
 					float res100 = reg012+reg034;
 					res[x][y+1]+=  res100 + reg8;
@@ -259,9 +252,6 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 #pragma HLS pipeline
 				img_t2[y] = 0;
 
-			int offset1,offset2;
-			offset1 = 1;
-			offset2 = 2;
 			for(int y=0; y<o_dim; y+=2)
 			{
 #pragma HLS loop_tripcount min=64 max=64
@@ -270,44 +260,40 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 					//res[o_dim -1][y]+=img_t0[t]*filt[0*F_DIM + t-y];
 
 				float reg0 = img_t0[y]*filt[0];
-				float reg1 = img_t0[offset1]*filt[1];
+				float reg1 = img_t0[y+1]*filt[1];
 				float reg01 = reg0+reg1;
-				float reg2 = img_t0[offset2]*filt[2];
+				float reg2 = img_t0[y+2]*filt[2];
 				float reg3 = img_t1[y]*filt[3];
 				float reg02= reg2+reg3;
-				float reg4 = img_t1[offset1]*filt[4];
-				float reg5 = img_t1[offset2]*filt[5];
+				float reg4 = img_t1[y+1]*filt[4];
+				float reg5 = img_t1[y+2]*filt[5];
 				reg01 = reg01 + reg02;
 				float reg03= reg4+reg5;
 				float reg6 = img_t2[y]*filt[6];
-				float reg7 = img_t2[offset1]*filt[7];
+				float reg7 = img_t2[y+1]*filt[7];
 				float reg04= reg6+reg7;
-				offset1 = y+2;
-				float reg8 = img_t2[offset2]*filt[8];
+				float reg8 = img_t2[y+2]*filt[8];
 				reg0 = img_t0[y+1]*filt[0];
-				offset2 =y+ 3;
 				reg01 = reg01+reg03;
-				reg1 = img_t0[offset1]*filt[1];
+				reg1 = img_t0[y+2]*filt[1];
 				float reg001 = reg0 +reg1;
-				reg2 = img_t0[offset2]*filt[2];
+				reg2 = img_t0[y+3]*filt[2];
 				float res1 =reg04+reg8;
 				reg3 = img_t1[y+1]*filt[3];
 				float reg002 = reg2 + reg3;
-				reg4 = img_t1[offset1]*filt[4];
-				reg5 = img_t1[offset2]*filt[5];
+				reg4 = img_t1[y+2]*filt[4];
+				reg5 = img_t1[y+3]*filt[5];
 				float reg012 = reg001+reg002;
 				float reg003 =reg4+reg5;
 				reg6 =img_t2[y+1]*filt[6];
 				res1 = res1 + reg01;
-				reg7 = img_t2[offset1]*filt[7];
+				reg7 = img_t2[y+2]*filt[7];
 				float reg004 = reg6+reg7;
-				offset1 = y+3;
 				float reg034 = reg003 +reg004;
-				reg8 = img_t2[offset2]*filt[8];
-				offset2 =y+ 4;
-				res[o_dim-1][y]+=  res1;
+				reg8 = img_t2[y+3]*filt[8];
+				res[o_dim -1][y]+=  res1;
 				float res100 = reg012+reg034;
-				res[o_dim-1][y+1]+=  res100 + reg8;
+				res[o_dim -1][y+1]+=  res100 + reg8;
 
 			}
 			for(int y=1; y<(dim_t-1); y++)
