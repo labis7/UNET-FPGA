@@ -12,7 +12,10 @@ typedef ap_uint<2> uint2;
 
 #define F_DIM 2
 
-
+struct data_out{
+	float data;
+	ap_uint<1> tlast;
+};
 /*
 void ps2ip_fifo(stream<axiWord> &ps2ip,stream<axiWord> &ps2ipIntFifo);
 void ip2ps_fifo(stream<axiWord> &ip2psIntFifo,stream<axiWord> &ip2ps);
@@ -23,5 +26,5 @@ void rules(uint32 rule1,uint32 rule_2);
 void get_rules(uint32 &tmp,uint32 &tmp1);
 */
 
-void my_ip_hls(stream<float> &image, stream<float> &filter, int ch, int dim);
+void my_ip_hls(stream<float> &image, stream<data_out> &filter, int ch, int dim);
 //void my_ip_hls();

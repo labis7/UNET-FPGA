@@ -5,11 +5,15 @@ static float img_t1[128];
 
 //static float b[10];
 
-void my_ip_hls(stream<float> &image,stream<float> &result, int ch, int dim) {
+void my_ip_hls(stream<float> &image,stream<data_out> &result, int ch, int dim) {
+#pragma HLS INTERFACE s_axilite port=dim bundle=CTRL_BUS
+#pragma HLS INTERFACE s_axilite port=ch bundle=CTRL_BUS
 #pragma HLS INTERFACE axis register both port=image
 #pragma HLS INTERFACE axis register both port=result
 #pragma HLS ARRAY_PARTITION variable=img_t1 cyclic factor=2 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t0 cyclic factor=2 dim=1
+//#pragma HLS INTERFACE s_axilite port=return bundle=CRTL_BUS
+#pragma HLS interface ap_ctrl_none port=return
 
 
 
@@ -63,8 +67,12 @@ void my_ip_hls(stream<float> &image,stream<float> &result, int ch, int dim) {
 					max = img_t1[s*y];
 				if(img_t1[s*y+1]> max)
 					max = img_t1[s*y+1];
-
-				result.write(max);
+				data_out max_s;
+				max_s.data = max;
+				max_s.tlast = 0;
+				if((i==(ch-1))&&(x==(o_dim-1))&&(y==(o_dim-1)))
+					max_s.tlast = 1;
+				result.write(max_s);
 				max = -100000;
 
 			}

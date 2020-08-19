@@ -14,13 +14,13 @@ int main() {
 
 	int ch=4;
 	int dim = 8;
+	//float *img=(float *)malloc(ch*dim*dim*sizeof(float));
 	float *img=(float *)malloc(ch*dim*dim*sizeof(float));
-
 
 	for(int c=0; c<ch ; c++)
 		for(int i=0;i<dim;i++)
 			for(int j=0;j<dim;j++)
-				img[c*dim*dim+i*dim+j] = (i+1)*(j*2+1)*1.3 + c;
+				img[c*dim*dim+i*dim+j]= (i+1)*(j*2+1)*1.3 + c;
 	printf("Before SEND:\n");
 	for(int c=0; c<ch ; c++)
 	{
@@ -37,7 +37,7 @@ int main() {
 
 
 	stream<float> image("Image");
-	stream<float> result("Result");
+	stream<data_out> result("Result");
 
 
 	//dataIn.ch = ch;
@@ -57,18 +57,7 @@ int main() {
 	}
 
 
-	/*
-	for(int c=0; c<ch ; c++)
-	{
-		for(int i=0;i<dim;i++)
-		{
-			for(int j=0;j<dim;j++)
-			{
-				image.write(img[c][i][j]);
-			}
-		}
-	}
-	*/
+
 	//slaveIn.write(dataIn);
 
 
@@ -79,7 +68,7 @@ int main() {
 	//allocate space for the result(known result dimensions)
 	int o_dim = dim/2;
 	int o_ch = ch;
-	float res[o_ch][o_dim][o_dim];
+	data_out res[o_ch][o_dim][o_dim];
 	////////////////////////////////////
 	printf("After SEND:\n");
 	for(int c=0; c < o_ch ; c++)
@@ -88,13 +77,14 @@ int main() {
 		{
 			for(int j=0;j<o_dim;j++)
 			{
-				result.read(res[c][i][j]);
-				printf("%f\t", res[c][i][j]);
+				res[c][i][j]=result.read();
+				printf("%f\t", res[c][i][j].data);
 			}
 			printf("\n");
 		}
 		printf("\n");
 	}
+
 	/*
 	for(int k = 0 ; k< f_num; k++)
 	{
@@ -138,5 +128,6 @@ int main() {
 	//printf("\n%d\n",(int)count_out);
 	printf("\n\nNo segmentation Problems\nFinishing . . .");
 	*/
+
 	return 0;
 }
