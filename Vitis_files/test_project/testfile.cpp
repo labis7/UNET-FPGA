@@ -46,6 +46,7 @@ void initPeripherals()
 	XAxiDma_IntrDisable(&axiDMA, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DEVICE_TO_DMA);
 	XAxiDma_IntrDisable(&axiDMA, XAXIDMA_IRQ_ALL_MASK, XAXIDMA_DMA_TO_DEVICE);
 
+
 }
 
 
@@ -72,6 +73,7 @@ int main()
 	XDogain_Start(&doGain);
 
 	//Flush the cache of the buffers
+	printf("Flushing Cache\n");
 	Xil_DCacheFlushRange((UINTPTR)inStreamData, SIZE_ARR*sizeof(int));
 	Xil_DCacheFlushRange((UINTPTR)m_dma_buffer_RX, SIZE_ARR*sizeof(int));
 
@@ -85,9 +87,9 @@ int main()
 
 	//Invalidate the cache to avoid reading garbage
 	Xil_DCacheInvalidateRange((UINTPTR)m_dma_buffer_RX, SIZE_ARR*sizeof(int));
-
+	printf("Waiting for IP to Terminate . . .\n");
 	while(!XDogain_IsDone(&doGain));
-	printf("Calculation Complete!\n");
+	printf("Calculation Complete!\n\n");
 
 	//Display Data
 	for(int idx = 0 ; idx < SIZE_ARR ; idx++ )
