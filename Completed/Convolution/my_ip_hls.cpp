@@ -301,13 +301,19 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 #pragma HLS pipeline
 				img_t0[y] = 0;
 		}
-		for(int x=0; x<o_dim; x++)
+		for(int x=0; x<o_dim; x++){
 #pragma HLS loop_tripcount min=128 max=128
 #pragma HLS pipeline
 			for(int y=0; y<o_dim; y++)
+			{
 #pragma HLS loop_tripcount min=128 max=128
-
-				result.write(res[x][y]);
+				float tmp=res[x][y];
+				if(tmp<=0)
+					result.write(0);
+				else
+					result.write(tmp);
+			}
+		}
 
 	}
 
