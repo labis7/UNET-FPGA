@@ -12,8 +12,8 @@ void my_ip_hls(stream<float> &image,stream<data_out> &result, int ch, int dim) {
 #pragma HLS INTERFACE axis register both port=result
 #pragma HLS ARRAY_PARTITION variable=img_t1 cyclic factor=2 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t0 cyclic factor=2 dim=1
-//#pragma HLS INTERFACE s_axilite port=return bundle=CRTL_BUS
-#pragma HLS interface ap_ctrl_none port=return
+#pragma HLS INTERFACE s_axilite port=return bundle=CRTL_BUS
+//#pragma HLS interface ap_ctrl_hs port=return
 
 
 

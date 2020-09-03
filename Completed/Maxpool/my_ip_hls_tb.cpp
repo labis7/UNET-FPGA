@@ -68,7 +68,8 @@ int main() {
 	//allocate space for the result(known result dimensions)
 	int o_dim = dim/2;
 	int o_ch = ch;
-	data_out res[o_ch][o_dim][o_dim];
+	//data_out res[o_ch*o_dim*o_dim];
+	data_out *res=(data_out *)malloc(o_ch*o_dim*o_dim*sizeof(data_out));
 	////////////////////////////////////
 	printf("After SEND:\n");
 	for(int c=0; c < o_ch ; c++)
@@ -77,8 +78,8 @@ int main() {
 		{
 			for(int j=0;j<o_dim;j++)
 			{
-				res[c][i][j]=result.read();
-				printf("%f\t", res[c][i][j].data);
+				res[c*o_dim*o_dim + i*o_dim*+j]=result.read();
+				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j].data);
 			}
 			printf("\n");
 		}
