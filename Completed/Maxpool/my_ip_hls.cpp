@@ -5,6 +5,7 @@ static float img_t1[128];
 
 //static float b[10];
 
+
 void my_ip_hls(stream<float> &image,stream<data_out> &result, int ch, int dim) {
 #pragma HLS INTERFACE s_axilite port=dim bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=ch bundle=CTRL_BUS

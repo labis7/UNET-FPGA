@@ -7,9 +7,14 @@ static float filt[F_DIM*F_DIM];
 static float res[128][128];
 //static float b[10];
 
-void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias, stream<float> &result, stream<data> &slaveIn) {
-#pragma HLS INTERFACE axis register both port=image bundle=inputs
-#pragma HLS INTERFACE axis register both port=filter bundle=inputs
+void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias, stream<float> &result, data &slaveIn) {
+#pragma HLS INTERFACE axis register both port=image
+#pragma HLS INTERFACE axis register both port=filter
+#pragma HLS INTERFACE axis register both port=bias
+#pragma HLS INTERFACE axis register both port=result
+
+#pragma HLS INTERFACE s_axilite port=slaveIn bundle=CRTL_BUS
+#pragma HLS INTERFACE s_axilite port=return bundle=CRTL_BUS
 
 #pragma HLS ARRAY_PARTITION variable=filt cyclic factor=4 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t0 cyclic factor=2 dim=1
@@ -56,14 +61,14 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 
 
 	data dataOut;
-	int dim,ch,f_num,mode;
+	int dim,ch,f_num;
 	//float img_pix,filt_pix;
 
 	//float arr[2][4][4];
-	slaveIn.read(dataOut);
-	ch = dataOut.ch;
-	dim = dataOut.dim;
-	f_num = dataOut.f_num;
+	//slaveIn.read(dataOut);
+	ch =slaveIn.ch;
+	dim = slaveIn.dim;
+	f_num = slaveIn.f_num;
 /*
 	for(int c=0; c<ch ; c++)
 		for(int i=0;i<dim;i++)

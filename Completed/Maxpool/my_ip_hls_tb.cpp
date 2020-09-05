@@ -69,7 +69,8 @@ int main() {
 	int o_dim = dim/2;
 	int o_ch = ch;
 	//data_out res[o_ch*o_dim*o_dim];
-	data_out *res=(data_out *)malloc(o_ch*o_dim*o_dim*sizeof(data_out));
+	//data_out *res=(data_out *)malloc(o_ch*o_dim*o_dim*sizeof(data_out));
+	data_out res[o_ch*o_dim*o_dim];
 	////////////////////////////////////
 	printf("After SEND:\n");
 	for(int c=0; c < o_ch ; c++)

@@ -13,8 +13,8 @@ using namespace hls;
 int main() {
 
 
-	int ch=4;
-	int dim = 8;
+	int ch=8;
+	int dim = 16;
 	float *img=(float *)malloc(ch*dim*dim*sizeof(float));
 
 	int f_num;
@@ -58,7 +58,7 @@ int main() {
 
 
 	stream<data> slaveIn("slaveIn");
-	stream<data> masterOut("masterOut");
+	//stream<data> masterOut("masterOut");
 	stream<float> image("Image");
 	stream<float> filter("Filter");
 	stream<float> result("Result");
@@ -71,7 +71,7 @@ int main() {
 	dataIn.ch = ch;
 	dataIn.dim =dim;
 	dataIn.f_num = f_num;
-	slaveIn.write(dataIn);
+	//slaveIn.write(dataIn);
 
 	for(int k=0; k < f_num;k++)
 	{
@@ -115,7 +115,7 @@ int main() {
 
 
 
-	my_ip_hls(image,filter, bias,result,slaveIn);
+	my_ip_hls(image,filter, bias,result,dataIn);
 
 
 	//allocate space for the result(known result dimensions)

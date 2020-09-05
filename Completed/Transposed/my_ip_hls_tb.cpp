@@ -56,9 +56,9 @@ int main() {
 		printf("\n");
 	}
 
-
-	stream<data> slaveIn("slaveIn");
-	stream<data> masterOut("masterOut");
+	data slaveIn;
+	//stream<data> slaveIn("slaveIn");
+	//stream<data> masterOut("masterOut");
 	stream<float> image("Image");
 	stream<float> filter("Filter");
 	stream<float> result("Result");
@@ -71,7 +71,7 @@ int main() {
 	dataIn.ch = ch;
 	dataIn.dim =dim;
 	dataIn.f_num = f_num;
-	slaveIn.write(dataIn);
+	//slaveIn.write(dataIn);
 
 	for(int k=0; k < f_num;k++)
 	{
@@ -116,8 +116,8 @@ int main() {
 	//slaveIn.write(dataIn);
 
 
-
-	my_ip_hls(image,filter, bias,result,slaveIn);
+	ap_uint<1> TLAST;
+	my_ip_hls(image,filter, bias,result,dataIn, TLAST);
 
 
 	//allocate space for the result(known result dimensions)

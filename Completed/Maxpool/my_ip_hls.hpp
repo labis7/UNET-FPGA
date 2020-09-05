@@ -14,7 +14,7 @@ typedef ap_uint<2> uint2;
 
 struct data_out{
 	float data;
-	ap_uint<1> tlast;
+	unsigned int tlast:1;
 };
 /*
 void ps2ip_fifo(stream<axiWord> &ps2ip,stream<axiWord> &ps2ipIntFifo);
