@@ -97,9 +97,9 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 	{
 		//read bias and init res with these values for each filter/o_ch
 		bias.read(bias_t);
-		for(int i=0; i<o_dim ; i++)
+		for(int x=0; x<o_dim ; x++)
 			for(int j=0;j<o_dim;j++)
-				res[i*o_dim + j] = bias_t;
+				res[x*o_dim + j] = bias_t;
 		for(int j=0; j < ch ; j++)
 		{
 			//load the filter of specific channel and filter number
@@ -127,9 +127,9 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 			}
 		}
 		//the current o_ch is completed
-		for(int i=0; i<o_dim ; i++)
+		for(int x=0; x<o_dim ; x++)
 			for(int j=0;j<o_dim;j++)
-				result.write(res[i*o_dim + j]);
+				result.write(res[x*o_dim + j]);
 	}
 
 
