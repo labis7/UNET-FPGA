@@ -13,12 +13,12 @@ using namespace hls;
 int main() {
 
 
-	int ch=4;
-	int dim = 4;
+	int ch=256;
+	int dim = 8;
 	float *img=(float *)malloc(ch*dim*dim*sizeof(float));
 
 	int f_num;
-	f_num = 2;
+	f_num = 128;
 	float *filt = (float *)malloc(f_num*ch*F_DIM*F_DIM*sizeof(float));
 	float b[f_num];
 	int counter=1;
@@ -56,7 +56,7 @@ int main() {
 		printf("\n");
 	}
 
-	data slaveIn;
+	//data slaveIn;
 	//stream<data> slaveIn("slaveIn");
 	//stream<data> masterOut("masterOut");
 	stream<float> image("Image");

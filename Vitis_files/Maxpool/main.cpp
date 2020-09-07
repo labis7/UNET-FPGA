@@ -18,7 +18,7 @@ XAxiDma_Config *axiDMA_cfg;
 //#define MEM_BASE_ADDR 0x01000000
 #define TX_BUFFER_BASE (0x01000000 + 0x00100000)
 #define RX_BUFFER_BASE (0x01000000 + 0x00600000)
-#define SW_BASE 0x00400000
+#define SW_BASE 0x00500000
 
 //#define SIZE_ARR 10
 //int inStreamData[SIZE_ARR];
@@ -168,9 +168,21 @@ int main()
 	while(!XMy_ip_hls_IsDone(&my_ip_hls));
 	printf("Calculation Complete!\n\n");
 
-
-
-
+/*
+	for(int c=0; c < o_ch ; c++)
+	{
+		for(int i=0;i<o_dim;i++)
+		{
+			for(int j=0;j<o_dim;j++)
+			{
+				//res[c*o_dim*o_dim + i*o_dim*+j]=result.read();
+				printf("%f\t", res[c*o_dim*o_dim + i*o_dim+j]);//*o_dim*o_dim + i*o_dim*+j].data);
+			}
+			//printf("\n");
+		}
+		//printf("\n");
+	}
+*/
 	//////// SOFTWARE MAXPOOLING  ///////////////
 
 

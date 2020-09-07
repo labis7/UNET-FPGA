@@ -21,7 +21,7 @@ XAxiDma_Config *axiDMA2_cfg;
 //#define MEM_BASE_ADDR 0x01000000
 //#define TX_BUFFER_BASE (MEM_BASE_ADDR + 0x00100000)
 
-#define SW_BASE 0x00400000
+#define SW_BASE 0x00500000
 #define img_addr SW_BASE
 #define filt_addr (SW_BASE+0x00400000)
 #define bias_addr (filt_addr+0x00400000)
@@ -132,111 +132,125 @@ int main()
 	//int *m_dma_buffer_RX = (int *)RX_BUFFER_BASE;
 
 	float *res = (float *)res_addr;
-
-	printf("Hello World!!!\n----------------------------------------------------------------\n");
-	//printf("\nPlatform Initialization . . .\n");
-	//init_platform();
-	//printf("Platform Initialization: Done!\n");
-	init_dma();
-	printf("DMA Initialization: Done!\n");
-	printf("IP initialization . . .\n");
-	setupIPs();
-	printf("IP Initialization : DONE\n");
-
-	int ch=4;
-	int dim = 4;
-	int f_num =2;
-
-	XMy_ip_hls_Set_slaveIn_ch(&my_ip_hls, ch);
-	XMy_ip_hls_Set_slaveIn_dim(&my_ip_hls, dim);
-	XMy_ip_hls_Set_slaveIn_f_num(&my_ip_hls, f_num);
-
-	XMy_ip_hls_Start(&my_ip_hls);
-	printf("Setting up via Axi Lite is Completed!\n");
-
-	printf("----------------------------------------------------------------\n");
-
-
-	int o_dim = dim*2;
-	int o_ch =f_num;
-	//Do the stream calculation
-	//float *img=(float *)malloc(ch*dim*dim*sizeof(float));
-	float *img=(float *)img_addr;//img[ch][dim][dim];
-	float *filt=(float *)filt_addr;//filt[f_num*ch*F_DIM*F_DIM];
-	//Display Data
-
-	//data_out *res=(data_out *)malloc(o_ch*o_dim*o_dim*sizeof(data_out));
-
-
-	float *b=(float *)bias_addr;//b[f_num];
-	int counter=1;
-	for(int k=0; k < f_num;k++)
+	for (int lab=0;lab<3;lab++)
 	{
-		for(int c=0; c < ch ; c++)
+
+
+		printf("Hello World!!!\n----------------------------------------------------------------\n");
+		//printf("\nPlatform Initialization . . .\n");
+		//init_platform();
+		//printf("Platform Initialization: Done!\n");
+		init_dma();
+		printf("DMA Initialization: Done!\n");
+		printf("IP initialization . . .\n");
+		setupIPs();
+		printf("IP Initialization : DONE\n");
+		int ch=64;
+		int dim = 32;
+		int f_num =32;
+		if(lab == 1)
 		{
-			for(int i=0;i < F_DIM;i++)
+			int ch=128;
+			int dim = 16;
+			int f_num =64;
+		}
+		if(lab == 2)
+		{
+			int ch=256;
+			int dim = 8;
+			int f_num =128;
+		}
+
+		XMy_ip_hls_Set_slaveIn_ch(&my_ip_hls, ch);
+		XMy_ip_hls_Set_slaveIn_dim(&my_ip_hls, dim);
+		XMy_ip_hls_Set_slaveIn_f_num(&my_ip_hls, f_num);
+
+		XMy_ip_hls_Start(&my_ip_hls);
+		printf("Setting up via Axi Lite is Completed!\n");
+
+		printf("----------------------------------------------------------------\n");
+
+
+		int o_dim = dim*2;
+		int o_ch =f_num;
+		//Do the stream calculation
+		//float *img=(float *)malloc(ch*dim*dim*sizeof(float));
+		float *img=(float *)img_addr;//img[ch][dim][dim];
+		float *filt=(float *)filt_addr;//filt[f_num*ch*F_DIM*F_DIM];
+		//Display Data
+
+		//data_out *res=(data_out *)malloc(o_ch*o_dim*o_dim*sizeof(data_out));
+
+
+		float *b=(float *)bias_addr;//b[f_num];
+		int counter=1;
+		for(int k=0; k < f_num;k++)
+		{
+			for(int c=0; c < ch ; c++)
 			{
-				for(int j=0;j < F_DIM;j++)
+				for(int i=0;i < F_DIM;i++)
 				{
-					filt[k*ch*F_DIM*F_DIM+ c*F_DIM*F_DIM + i*F_DIM+j] = counter;
-					counter++;
+					for(int j=0;j < F_DIM;j++)
+					{
+						filt[k*ch*F_DIM*F_DIM+ c*F_DIM*F_DIM + i*F_DIM+j] = counter;
+						counter++;
+					}
 				}
 			}
+			b[k]=0;
 		}
-		b[k]=0;
-	}
-	for(int c=0; c<ch ; c++)
-		for(int i=0;i<dim;i++)
-			for(int j=0;j<dim;j++)
-				img[c*dim*dim + i*dim+j]= (i+1)*(j*2+1)*1.3 + c; //*dim*dim+i*dim+j]= (i+1)*(j*2+1)*1.3 + c;
-	/*
-	printf("Before SEND:\n");
-	for(int c=0; c<ch ; c++)
-	{
-		for(int i=0;i<dim;i++)
+		for(int c=0; c<ch ; c++)
+			for(int i=0;i<dim;i++)
+				for(int j=0;j<dim;j++)
+					img[c*dim*dim + i*dim+j]= (i+1)*(j*2+1)*1.3 + c; //*dim*dim+i*dim+j]= (i+1)*(j*2+1)*1.3 + c;
+		/*
+		printf("Before SEND:\n");
+		for(int c=0; c<ch ; c++)
 		{
-			for(int j=0;j<dim;j++)
+			for(int i=0;i<dim;i++)
 			{
-				printf("%f\t",img[c][i][j]);
+				for(int j=0;j<dim;j++)
+				{
+					printf("%f\t",img[c][i][j]);
+				}
+				printf("\n");
 			}
 			printf("\n");
 		}
-		printf("\n");
-	}
 
-	*/
+		*/
 
 
-	//float res[o_ch*o_dim*o_dim];
-	//float res[o_ch][o_dim][o_dim]; dma hang WARNING!!!!
+		//float res[o_ch*o_dim*o_dim];
+		//float res[o_ch][o_dim][o_dim]; dma hang WARNING!!!!
 
-	//Flush the cache of the buffers
-	printf("Flushing Cache\n");
-	Xil_DCacheFlushRange((UINTPTR)img, ch*dim*dim*sizeof(float));
-	Xil_DCacheFlushRange((UINTPTR)filt, f_num*ch*F_DIM*F_DIM*sizeof(float));
-	Xil_DCacheFlushRange((UINTPTR)b, f_num*sizeof(float));
-	Xil_DCacheFlushRange((UINTPTR)res, o_ch*o_dim*o_dim*sizeof(float));
+		//Flush the cache of the buffers
+		printf("Flushing Cache\n");
+		Xil_DCacheFlushRange((UINTPTR)img, ch*dim*dim*sizeof(float));
+		Xil_DCacheFlushRange((UINTPTR)filt, f_num*ch*F_DIM*F_DIM*sizeof(float));
+		Xil_DCacheFlushRange((UINTPTR)b, f_num*sizeof(float));
+		Xil_DCacheFlushRange((UINTPTR)res, o_ch*o_dim*o_dim*sizeof(float));
 
-	printf("Sending Data to IP core slave\n");
-	XAxiDma_SimpleTransfer(&axiDMA0, (UINTPTR)img, ch*dim*dim*sizeof(float), XAXIDMA_DMA_TO_DEVICE);
-	printf("Sending Image . . .\n");
-	//while(XAxiDma_Busy(&axiDMA0, XAXIDMA_DMA_TO_DEVICE));
-	XAxiDma_SimpleTransfer(&axiDMA1, (UINTPTR)filt, f_num*ch*F_DIM*F_DIM*sizeof(float), XAXIDMA_DMA_TO_DEVICE);
-	printf("Sending Filter . . .\n");
-	//while(XAxiDma_Busy(&axiDMA1, XAXIDMA_DMA_TO_DEVICE));
-	XAxiDma_SimpleTransfer(&axiDMA2, (UINTPTR)b, f_num*sizeof(float), XAXIDMA_DMA_TO_DEVICE);
-	printf("Sending Bias . . .\n");
-	//while(XAxiDma_Busy(&axiDMA2, XAXIDMA_DMA_TO_DEVICE));
+		printf("Sending Data to IP core slave\n");
+		XAxiDma_SimpleTransfer(&axiDMA0, (UINTPTR)img, ch*dim*dim*sizeof(float), XAXIDMA_DMA_TO_DEVICE);
+		printf("Sending Image . . .\n");
+		//while(XAxiDma_Busy(&axiDMA0, XAXIDMA_DMA_TO_DEVICE));
+		XAxiDma_SimpleTransfer(&axiDMA1, (UINTPTR)filt, f_num*ch*F_DIM*F_DIM*sizeof(float), XAXIDMA_DMA_TO_DEVICE);
+		printf("Sending Filter . . .\n");
+		//while(XAxiDma_Busy(&axiDMA1, XAXIDMA_DMA_TO_DEVICE));
+		XAxiDma_SimpleTransfer(&axiDMA2, (UINTPTR)b, f_num*sizeof(float), XAXIDMA_DMA_TO_DEVICE);
+		printf("Sending Bias . . .\n");
+		//while(XAxiDma_Busy(&axiDMA2, XAXIDMA_DMA_TO_DEVICE));
 
-	printf("Getting Data . . .\n");
-	XAxiDma_SimpleTransfer(&axiDMA0, (UINTPTR)res, o_ch*o_dim*o_dim*sizeof(float), XAXIDMA_DEVICE_TO_DMA);
-	while(XAxiDma_Busy(&axiDMA0, XAXIDMA_DEVICE_TO_DMA));
+		printf("Getting Data . . .\n");
+		XAxiDma_SimpleTransfer(&axiDMA0, (UINTPTR)res, o_ch*o_dim*o_dim*sizeof(float), XAXIDMA_DEVICE_TO_DMA);
+		//while(XAxiDma_Busy(&axiDMA0, XAXIDMA_DEVICE_TO_DMA));
 
-	//Invalidate the cache to avoid reading garbage
-	Xil_DCacheInvalidateRange((UINTPTR)res, o_ch*o_dim*o_dim*sizeof(float));
-	printf("Waiting for IP to Terminate . . .\n");
-	while(!XMy_ip_hls_IsDone(&my_ip_hls));
-	printf("Calculation Complete!\n\n");
+		//Invalidate the cache to avoid reading garbage
+		Xil_DCacheInvalidateRange((UINTPTR)res, o_ch*o_dim*o_dim*sizeof(float));
+		printf("Waiting for IP to Terminate . . .\n");
+		while(!XMy_ip_hls_IsDone(&my_ip_hls));
+		printf("Calculation Complete!\n\n");
 
 
 
@@ -244,73 +258,76 @@ int main()
 
 
 
-	///////////////////////////// SW TRANSPOSED CONVOLUTION  ////////////////////////////////////
-	printf("\nSW Transposed Convolution Initiated . . .\n");
-	float *res_sw = (float *)res_sw_addr;
-	for(int c =0 ; c<o_ch; c++)
-		for(int i=0; i<o_dim ; i++)
-			for(int j=0;j<o_dim;j++)
-				res_sw[c*o_dim*o_dim + i*o_dim + j] = bias_t;
+		///////////////////////////// SW TRANSPOSED CONVOLUTION  ////////////////////////////////////
+		int s =2;
 
-	for(int i=0; i<f_num; i++)//number of filters/o_ch
-		for(int j=0; j < ch ; j++)
-			for(int x=0; x<dim; x++)
-				for(int y=0; y<dim; y++)
-					for(int k=0; k<F_DIM; k++)
-						for(int l =0 ; l<F_DIM; l++)
-							res_sw[i*o_dim*o_dim +(x*s+k)*o_dim + (y*s+l)] += img[j*dim*dim + x*dim+y]*filt[i*ch*F_DIM*F_DIM + j*F_DIM*F_DIM + k*F_DDIM + l];
+		printf("\nSW Transposed Convolution Initiated . . .\n");
+		float *res_sw = (float *)res_sw_addr;
+		for(int c =0 ; c<o_ch; c++)
+			for(int i=0; i<o_dim ; i++)
+				for(int j=0;j<o_dim;j++)
+					res_sw[c*o_dim*o_dim + i*o_dim + j] = b[c];
+
+		for(int i=0; i<f_num; i++)//number of filters/o_ch
+			for(int j=0; j < ch ; j++)
+				for(int x=0; x<dim; x++)
+					for(int y=0; y<dim; y++)
+						for(int k=0; k<F_DIM; k++)
+							for(int l =0 ; l<F_DIM; l++)
+								res_sw[i*o_dim*o_dim +(x*s+k)*o_dim + (y*s+l)] += img[j*dim*dim + x*dim+y]*filt[i*ch*F_DIM*F_DIM + j*F_DIM*F_DIM + k*F_DIM + l];
 
 
-	printf("SW & HW Calculations completed. Now comparing . . .\n");
+		printf("SW & HW Calculations completed. Now comparing . . .\n");
 
-	int confirm=-1;
-	for(int c=0; c < o_ch ; c++)
-	{
-		for(int i=0;i<o_dim;i++)
+		int confirm=-1;
+		for(int c=0; c < o_ch ; c++)
 		{
-			for(int j=0;j<o_dim;j++)
+			for(int i=0;i<o_dim;i++)
 			{
-				//res[c*o_dim*o_dim + i*o_dim*+j]=result.read();
-				//printf("%f\t", res[c*o_dim*o_dim + i*o_dim+j]);//*o_dim*o_dim + i*o_dim*+j].data);
-				if(abs(res[c*o_dim*o_dim + i*o_dim+j] - res_sw[c*o_dim*o_dim + i*o_dim+j])>0.1)
+				for(int j=0;j<o_dim;j++)
 				{
-					confirm=1;
-					printf("%f (SW) != %f (HW)\n",res_sw[c*o_dim*o_dim + i*o_dim+j],res[c*o_dim*o_dim + i*o_dim+j]);
+					//res[c*o_dim*o_dim + i*o_dim*+j]=result.read();
+					//printf("%f\t", res[c*o_dim*o_dim + i*o_dim+j]);//*o_dim*o_dim + i*o_dim*+j].data);
+					if(abs(res[c*o_dim*o_dim + i*o_dim+j] - res_sw[c*o_dim*o_dim + i*o_dim+j])>0.1)
+					{
+						confirm=1;
+						printf("%f (SW) != %f (HW)\n",res_sw[c*o_dim*o_dim + i*o_dim+j],res[c*o_dim*o_dim + i*o_dim+j]);
+					}
 				}
+				//printf("\n");
 			}
 			//printf("\n");
 		}
-		//printf("\n");
-	}
 
-	if(confirm == 1)
-		printf("\n---------------------  Status : **FAIL**  --------------------------\n\n");
-	else
-		printf("\n---------------------  Status : **PASS**  --------------------------\n\n");
+		if(confirm == 1)
+			printf("\n---------------------  Status : **FAIL**  --------------------------\n\n");
+		else
+			printf("\n---------------------  Status : **PASS**  --------------------------\n\n");
 
-	/////////////////////////////////////////////////////////////////
+		/////////////////////////////////////////////////////////////////
 
 
-	/*
-	printf("After SEND:\n");
-	for(int c=0; c < o_ch ; c++)
-	{
-		for(int i=0;i<o_dim;i++)
+		/*
+		printf("After SEND:\n");
+		for(int c=0; c < o_ch ; c++)
 		{
-			for(int j=0;j<o_dim;j++)
+			for(int i=0;i<o_dim;i++)
 			{
-				//res[c*o_dim*o_dim + i*o_dim*+j]=result.read();
-				printf("%f\t", res[c*o_dim*o_dim + i*o_dim+j]);//*o_dim*o_dim + i*o_dim*+j].data);
+				for(int j=0;j<o_dim;j++)
+				{
+					//res[c*o_dim*o_dim + i*o_dim*+j]=result.read();
+					printf("%f\t", res[c*o_dim*o_dim + i*o_dim+j]);
+				}
+				printf("\n");
 			}
 			printf("\n");
 		}
-		printf("\n");
+
+		*/
+
+
+
+		//cleanup_platform();
 	}
-
-	*/
-
-
-
-	//cleanup_platform();
 	return 0;
 }

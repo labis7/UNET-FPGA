@@ -12,15 +12,16 @@ using namespace hls;
 int main() {
 
 
-	int ch=4;
-	int dim = 8;
+	int ch=16;
+	int dim = 32;
 	//float *img=(float *)malloc(ch*dim*dim*sizeof(float));
-	float *img=(float *)malloc(ch*dim*dim*sizeof(float));
-
+	//float *img=(float *)malloc(ch*dim*dim*sizeof(float)); SIGSERV ERROR DURING BIG DATA TESTING
+	float img[ch*dim*dim];
 	for(int c=0; c<ch ; c++)
 		for(int i=0;i<dim;i++)
 			for(int j=0;j<dim;j++)
-				img[c*dim*dim+i*dim+j]= (i+1)*(j*2+1)*1.3 + c;
+				img[c*dim*dim+i*dim+j]= (i+1)*(j*2+1)*1.3 + c);
+
 	printf("Before SEND:\n");
 	for(int c=0; c<ch ; c++)
 	{

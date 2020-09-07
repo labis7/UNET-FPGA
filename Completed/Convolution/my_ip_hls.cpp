@@ -1,4 +1,5 @@
 #include "my_ip_hls.hpp"
+static float img[524288];
 //static float img[10][10][10];//130*32
 static float img_t0[130];
 static float img_t1[130];
@@ -20,7 +21,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 #pragma HLS ARRAY_PARTITION variable=img_t0 cyclic factor=2 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t1 cyclic factor=2 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t2 cyclic factor=2 dim=1
-
+#pragma HLS ARRAY_PARTITION variable=img cyclic factor=2 dim=1
 
 //#pragma HLS INTERFACE m_axi depth=32 port=slaveIn
 //	void my_ip_hls(stream<axiWord> &slaveIn,stream<axiWord> &masterOut, uint32 rule1,uint32 rule2) {
@@ -69,14 +70,14 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 	ch =slaveIn.ch;
 	dim = slaveIn.dim;
 	f_num = slaveIn.f_num;
-/*
+
 	for(int c=0; c<ch ; c++)
 		for(int i=0;i<dim;i++)
 			for(int j=0;j<dim;j++)
-				image.read(img[c][i][j]);
+				img[c*dim*dim + i*dim+j]=image.read();
 
 
-
+/*
 	for(int k = 0 ; k< f_num; k++)
 	{
 		for(int c=0; c<ch ; c++)
@@ -138,9 +139,10 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 
 	// Now we can start the convolution
 	float sum;
+	int counter=0;
 	for (int i=0; i<f_num; i++)//number of filters
 	{
-
+		counter=0;
 #pragma HLS loop_tripcount min=16 max=16
 		float bias_t = bias.read();
 		for(int x=0; x<o_dim; x++)
@@ -162,7 +164,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 			//memcpy(img_t1+1, image +j*dim*dim , sizeof(float)*320);
 			for(int z = 1 ; z<dim_t-1; z++)
 #pragma HLS loop_tripcount min=128 max=128
-				img_t1[z] = image.read();
+				img_t1[z] =img[counter++];// image.read();
 
 
 
@@ -195,7 +197,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 				for(int z = 1 ; z<dim_t-1; z++)
 #pragma HLS pipeline
 #pragma HLS loop_tripcount min=128 max=128
-					img_t2[z] = image.read();
+					img_t2[z] = img[counter++];//image.read();
 
 				for(int y=0; y<o_dim; y+=2)
 				{
