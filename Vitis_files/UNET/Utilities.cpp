@@ -9,13 +9,191 @@
  */
 #include <stdlib.h>
 #include <header.h>
+
 //#include <time.h>
 
-////////////// Function Naming init. ////////////////
+////////////// DEF ////////////////
+////////////////////////
+//////  Maxpool ///////
+XMy_ip_hls my_ip_hls;
+XMy_ip_hls_Config *my_ip_hls_cfg;
 
+XAxiDma axiDMA6;
+XAxiDma_Config *axiDMA6_cfg;
+///////////////////////
+
+
+//////  Conv ///////
+XConv conv_ip;
+XConv_Config *conv_ip_cfg;
+
+XAxiDma axiDMA0;
+XAxiDma_Config *axiDMA0_cfg;
+
+XAxiDma axiDMA1;
+XAxiDma_Config *axiDMA1_cfg;
+
+XAxiDma axiDMA2;
+XAxiDma_Config *axiDMA2_cfg;
+///////////////////////
+
+//////  Tconv ///////
+XTconv tconv_ip;
+XTconv_Config *tconv_ip_cfg;
+
+XAxiDma axiDMA3;
+XAxiDma_Config *axiDMA3_cfg;
+
+XAxiDma axiDMA4;
+XAxiDma_Config *axiDMA4_cfg;
+
+XAxiDma axiDMA5;
+XAxiDma_Config *axiDMA5_cfg;
+///////////////////////
 ////////////////////////////////////////////////////
+float Random_Normal(int loc, float scale)
+{
+   // return a normally distributed random value
+	scale = 1;
+	loc=0;
+	float v1 = ( (float)(rand()) + 1. )/( (float)(RAND_MAX) + 1. ); //random gen
+	float v2 = ( (float)(rand()) + 1. )/( (float)(RAND_MAX) + 1. );//random gen
+	return ((cos(2*3.14*v2)*sqrt(-2.*log(v1)))*scale + loc);
+}
 
 
+void Initialize_Parameters(struct init_param_ *ptr_init_param)
+{
+	int layers = ptr_init_param->layers;//number of layers(just the encoder-downsampling number)
+	int num_f = ptr_init_param->num_f;  //initial number of filters(they will be doubled for each layer)
+	float trim = ptr_init_param->trim;  //weight scale of the values
+	float **filters = (float **)malloc((layers*2*2-1)*sizeof(float *));
+	float **bias = (float **)malloc((layers*2*2-1)*sizeof(float *));
+	float **f_dc = (float **)malloc((layers-1)*sizeof(float *));
+	float **b_dc = (float **)malloc((layers-1)*sizeof(float *));
+
+	int ch_in = 1; //number of initial channels input from the input image
+	int loc = 0; //normal distribution around zero
+
+	int last_pos=0;
+	//Building the downsampling/encoder filters first.(5 layers*2 filters each)
+	for (int i=0; i<layers; i++)
+	{
+		if(i != 0) //after 1st iteration, double the amount of filters of each layer
+			num_f = num_f*2; //*16*, 32, 64, 128, 256
+		//Building f1
+		float *f1 = (float *)malloc(num_f*ch_in*3*3*sizeof(float));//make_4darray(num_f, ch_in, 3);//3x3 filter alwars for the simple convolution
+		float *b1 = (float *)malloc(num_f*sizeof(float));
+		for (int x=0;x<num_f;x++)
+		{
+			for (int y=0;y<ch_in;y++)
+				for (int z=0;z<3;z++)
+					for(int w=0;w<3;w++)
+					{
+						f1[x*num_f*9 + y*9 + z*3 + w] = Random_Normal(loc, trim);
+					}
+			b1[x] =  Random_Normal(loc, trim);
+		}
+
+		/*
+		 * Very important! Next filter will have as input the output/channels of the previous filter
+		 * More : When we apply a number of filters on an image, we create num_f channels on the image result.
+		 * So each filter must have input dim same as the input image channels, output dim = channels we want to occur after conv.
+		 */
+		ch_in = num_f;
+
+		float *f2 =(float *)malloc(num_f*ch_in*3*3*sizeof(float));// make_4darray(num_f, ch_in, 3);//3x3 filter alwars for the simple convolution
+		float *b2 = (float *)malloc(num_f*sizeof(float));
+		for (int x=0;x<num_f;x++)
+		{
+			for (int y=0;y<ch_in;y++)
+				for (int z=0;z<3;z++)
+					for(int w=0;w<3;w++)
+					{
+						f2[x*num_f*9 + y*9 + z*3 + w] = Random_Normal(loc, trim);
+					}
+			b2[x] = Random_Normal(loc, trim);
+		}
+		filters[2*i] = f1;
+		filters[2*i +1] = f2;
+		bias[2*i] = b1;
+		bias[2*i +1] = b2;
+		last_pos++; //last position of the i that shows the current layer, we will need it later so we keep saving filters and
+		//bias sequencially.
+	}
+	for (int i = 1 ; i < layers; i++)
+	{
+		num_f = (int)num_f/2;//It will be always power of number of filters,so the division will give back integer
+
+		float *fdc = (float *)malloc(num_f*ch_in*2*2*sizeof(float));//make_4darray(num_f, ch_in, 2);//2x2 filter always for the upsampling/transposed convolution
+		float *bdc = (float *)malloc(num_f*sizeof(float));
+		float *f1 =(float *)malloc(num_f*ch_in*3*3*sizeof(float));// make_4darray(num_f, ch_in, 3);//3x3 filter always for the simple convolution
+		float *b1 = (float *)malloc(num_f*sizeof(float));
+		for (int x=0;x<num_f;x++)
+		{
+			for (int y=0;y<ch_in;y++)
+			{
+				for (int z=0;z<3;z++)
+				{
+					for(int w=0;w<3;w++)
+						f1[x*num_f*9 + y*9 + z*3 + w]= Random_Normal(loc, trim);
+				}
+				for (int z=0;z<2;z++)
+				{
+					for(int w=0;w<2;w++)
+						fdc[x*num_f*4 + y*4 + z*2 + w] = Random_Normal(loc, trim);
+				}
+			}
+			bdc[x] =  Random_Normal(loc, trim);
+			b1[x] = Random_Normal(loc, trim);
+		}
+
+		ch_in = num_f ;
+
+		float *f2 = (float *)malloc(num_f*ch_in*3*3*sizeof(float));//make_4darray(num_f, ch_in, 3);//3x3 filter always for the simple convolution
+		float *b2 = (float *)malloc(num_f*sizeof(float));
+		for (int x=0;x<num_f;x++)
+		{
+			for (int y=0;y<ch_in;y++)
+				for (int z=0;z<3;z++)
+					for(int w=0;w<3;w++)
+					{
+						f2[x*num_f*9 + y*9 + z*3 + w] = Random_Normal(loc, trim);
+					}
+			b2[x] =  Random_Normal(loc, trim);
+		}
+
+		filters[last_pos*2] = f1;
+		filters[last_pos*2 + 1] = f2;
+		bias[last_pos*2] = b1;
+		bias[last_pos*2 + 1] = b2;
+		f_dc[i-1] = fdc;
+		b_dc[i] = bdc;
+		last_pos++;
+	}
+	printf("\nlast_pos:%d",last_pos);
+	//Now build the last one 1x1 conv filters
+	num_f = 1; //we need 1 channels for the output(same as input)
+	float *out_f = (float *)malloc(num_f*ch_in*1*1*sizeof(float));//make_4darray(num_f, ch_in, 1);//1x1 output filter
+	float *out_b = (float *)malloc(num_f*sizeof(float));
+	for (int x=0;x<num_f;x++)
+	{
+		for (int y=0;y<ch_in;y++)
+			for (int z=0;z<1;z++)
+				for(int w=0;w<1;w++)
+				{
+					out_f[x*num_f*1 + y*1 + z*1 + w] = Random_Normal(loc, trim);
+				}
+		out_b[x] =  Random_Normal(loc, trim);
+	}
+	filters[last_pos*2] = out_f;
+	bias[last_pos*2] = out_b;
+
+	ptr_init_param->filters = filters;
+	ptr_init_param->bias = bias;
+	ptr_init_param->f_dc = f_dc;
+	ptr_init_param->b_dc = b_dc;
+}
 
 void Activation_Function(struct act_func_data_ *act_func_data)
 {
@@ -276,59 +454,7 @@ int calc_ch_num(int layer,int tuple)
 
 
 
-//////  Maxpool ///////
-XMy_ip_hls my_ip_hls;
-XMy_ip_hls_Config *my_ip_hls_cfg;
 
-XAxiDma axiDMA6;
-XAxiDma_Config *axiDMA6_cfg;
-///////////////////////
-
-
-//////  Conv ///////
-XConv conv_ip;
-XConv_Config *conv_ip_cfg;
-
-XAxiDma axiDMA0;
-XAxiDma_Config *axiDMA0_cfg;
-
-XAxiDma axiDMA1;
-XAxiDma_Config *axiDMA1_cfg;
-
-XAxiDma axiDMA2;
-XAxiDma_Config *axiDMA2_cfg;
-///////////////////////
-
-//////  Tconv ///////
-XTconv tconv_ip;
-XTconv_Config *tconv_ip_cfg;
-
-XAxiDma axiDMA3;
-XAxiDma_Config *axiDMA3_cfg;
-
-XAxiDma axiDMA4;
-XAxiDma_Config *axiDMA4_cfg;
-
-XAxiDma axiDMA5;
-XAxiDma_Config *axiDMA_cfg;
-///////////////////////
-
-
-///////////////// MEMORY MAPPING ///////////////////
-//Map memory so IPs can read from the stick ram0 and write to stick ram1
-//same for arm, which is able to read from 2 sticks at the same time
-//(reading from stick 0 in order to send data to IP and read results from stick 1)
-#define SW_BASE 0x50000000
-#define img_addr SW_BASE
-#define filt_addr (SW_BASE+0x00400000)
-#define bias_addr (filt_addr+0x00400000)
-#define res_addr (bias_addr +0x00008000)
-#define res_sw_addr (res_addr + 0x00400000)
-#define img_t_addr (res_sw_addr + 0x00400000)
-
-#define TX_BUFFER_BASE (0xD0000000 + 0x00000000)
-#define RX_BUFFER_BASE (0xD0000000 + 0x00400000)
-////////////////////////////////////////////////////
 
 
 void init_dma(){
@@ -511,34 +637,52 @@ int main(void) {
 	//time_t t;
 	//srand((unsigned) time(&t));
 
-	puts("Main function init!");
+	puts("Initializing DMAs and IPs . . .\n");
+	init_dma();
+	setupIPs();
+	printf("Initialization Completed!\n");
+	printf("----------------------------------------------------------------\n");
 
-	/*
-	int channels,code,dim;
-	code = 1;//sigmoid(approximation)
-	channels = 2;
-	dim = 5;
+	int ch_num,dim;
+	ch_num = 1;
+	dim = 64;
 
-	float ***image1;
-	image1 = make_3darray(channels,dim);
-	for (int i=0;i<channels;i++)
-	{
+
+	float *img =(float *)malloc(dim*dim*sizeof(float));
+	for (int i=0;i<ch_num; i++)
 		for (int j=0;j<dim;j++)
-		{
 			for (int k=0;k<dim;k++)
-			{
-				image1[i][j][k] = (i+1)*(j*2+k*1) +1;
-				//printf("%f\t", image1[i][j][k]);//*(*(*(pA +i) + j) +k));
-			}
-			//printf("\n");
-		}
-		//printf("\n");
-	}
-	testff(image1);
-	//struct images_data_ images_data;
-	*/
-	//struct images_data_ *ptr_images_data, images_data;// = &images_data;
-	//ptr_images_data = &images_data;
+				img[i*ch_num*dim*dim +j*dim + k] = ((i+1)*(j*2+k*1)*1.3 +1)/(ch_num*dim*dim);
+
+	struct init_param_ *ptr_init_param,init_param;
+	ptr_init_param = &init_param;
+	ptr_init_param->layers = 5;
+	ptr_init_param->num_f=16;
+	ptr_init_param->trim = 0.01;
+
+	Initialize_Parameters(ptr_init_param);
+
+
+	struct images_data_ *ptr_images_data, images_data;// = &images_data;
+	ptr_images_data = &images_data;
+	float **image =(float **)malloc(sizeof(float *));
+	image[0] =img;
+	ptr_images_data->dim=dim;
+	ptr_images_data->im_num=1;
+	ptr_images_data->images=image;
+
+
+	struct params_ *ptr_params, params;
+	ptr_params = &params;
+	ptr_params->bias =ptr_init_param->bias;
+	ptr_params->layers = 10;
+	ptr_params->num_f = 16;
+	ptr_params->filters=ptr_init_param->filters;
+	ptr_params->f_dc = ptr_init_param->f_dc;
+
+	predict(ptr_images_data, ptr_params);
+
+
 	return 0;
 	///////////////////////////////////////////////////////
 	////////////////// TESTING SECTION ////////////////////

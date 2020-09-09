@@ -24,12 +24,70 @@ void Activation_Function(struct act_func_data_ *);
 void conv(struct conv_data_ *);
 int calc_f_num(int c);
 void GN();
+
 void load_params();
 void load_images();
 void load_labels();
-void predict();
+void predict(struct images_data_ *images_data,struct params_ *params);
 void normalize_custom(struct norm_data_ *);
+
 ////////////////////////
+//////  Maxpool ///////
+extern XMy_ip_hls my_ip_hls;
+extern XMy_ip_hls_Config *my_ip_hls_cfg;
+
+extern XAxiDma axiDMA6;
+extern XAxiDma_Config *axiDMA6_cfg;
+///////////////////////
+
+
+//////  Conv ///////
+extern XConv conv_ip;
+extern XConv_Config *conv_ip_cfg;
+
+extern XAxiDma axiDMA0;
+extern XAxiDma_Config *axiDMA0_cfg;
+
+extern XAxiDma axiDMA1;
+extern XAxiDma_Config *axiDMA1_cfg;
+
+extern XAxiDma axiDMA2;
+extern XAxiDma_Config *axiDMA2_cfg;
+///////////////////////
+
+//////  Tconv ///////
+extern XTconv tconv_ip;
+extern XTconv_Config *tconv_ip_cfg;
+
+extern XAxiDma axiDMA3;
+extern XAxiDma_Config *axiDMA3_cfg;
+
+extern XAxiDma axiDMA4;
+extern XAxiDma_Config *axiDMA4_cfg;
+
+extern XAxiDma axiDMA5;
+extern XAxiDma_Config *axiDMA5_cfg;
+///////////////////////
+
+
+///////////////// MEMORY MAPPING ///////////////////
+//Map memory so IPs can read from the stick ram0 and write to stick ram1
+//same for arm, which is able to read from 2 sticks at the same time
+//(reading from stick 0 in order to send data to IP and read results from stick 1)
+#define SW_BASE 0x50000000
+#define img_addr SW_BASE
+#define filt_addr (SW_BASE+0x00400000)
+#define bias_addr (filt_addr+0x00400000)
+#define temp0_addr (bias_addr +0x00008000)
+#define temp1_addr (temp0_addr + 0x00400000)
+#define img_t_addr (temp1_addr + 0x00400000)
+
+#define TX_BUFFER_BASE (0xD0000000 + 0x00000000)
+#define RX_BUFFER_BASE (0xD0000000 + 0x00400000)
+////////////////////////////////////////////////////
+
+
+///////////////////////
 
 #ifndef MAIN_H_
 #define MAIN_H_
@@ -76,7 +134,7 @@ struct images_data_
 	 * we have the basic type (ch_num,dim,dim)
 	 * im_num: The number of images/labels available in the folders
 	 */
-	float ****images,****labels;
+	float **images,****labels;
 	int im_num, dim;
 };
 struct gn_data_
@@ -108,7 +166,7 @@ struct params_
 	 * b_dc,bias,ga,be : all these are tyoe of matrices of 1d-arrays. ga,be got //gn_batch the size of bias.
 	 */
 	int layers, num_f, gn_batch;
-	float *****filters,**bias, *****f_dc,**b_dc,**ga,**be;
+	float **filters,**bias, **f_dc,**b_dc,**ga,**be;
 
 };
 
@@ -204,7 +262,7 @@ struct init_param_
 	 * F_dc: This matrix contains the decoder upsampling transposed convolution filters.Its type is the same as Filters matrix.
 	 */
 	int layers, num_f, trim;
-	float *****filters,**bias, *****f_dc,**b_dc;
+	float **filters,**bias, **f_dc,**b_dc;
 
 };
 struct init_GN_
