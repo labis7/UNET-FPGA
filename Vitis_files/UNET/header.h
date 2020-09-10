@@ -25,6 +25,9 @@ void conv(struct conv_data_ *);
 int calc_f_num(int c);
 void GN();
 
+void init_dma();
+void setupIPs();
+
 void load_params();
 void load_images();
 void load_labels();

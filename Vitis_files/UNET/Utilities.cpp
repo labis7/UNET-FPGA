@@ -90,9 +90,9 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 				for (int z=0;z<3;z++)
 					for(int w=0;w<3;w++)
 					{
-						f1[x*num_f*9 + y*9 + z*3 + w] = Random_Normal(loc, trim);
+						f1[x*ch_in*9 + y*9 + z*3 + w] =0.05;// Random_Normal(loc, trim);
 					}
-			b1[x] =  Random_Normal(loc, trim);
+			b1[x] =0;//  Random_Normal(loc, trim);
 		}
 
 		/*
@@ -110,9 +110,9 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 				for (int z=0;z<3;z++)
 					for(int w=0;w<3;w++)
 					{
-						f2[x*num_f*9 + y*9 + z*3 + w] = Random_Normal(loc, trim);
+						f2[x*ch_in*9 + y*9 + z*3 + w] =0.0005;// Random_Normal(loc, trim);
 					}
-			b2[x] = Random_Normal(loc, trim);
+			b2[x] =0;// Random_Normal(loc, trim);
 		}
 		filters[2*i] = f1;
 		filters[2*i +1] = f2;
@@ -136,16 +136,16 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 				for (int z=0;z<3;z++)
 				{
 					for(int w=0;w<3;w++)
-						f1[x*num_f*9 + y*9 + z*3 + w]= Random_Normal(loc, trim);
+						f1[x*ch_in*9 + y*9 + z*3 + w]=0.005;// Random_Normal(loc, trim);
 				}
 				for (int z=0;z<2;z++)
 				{
 					for(int w=0;w<2;w++)
-						fdc[x*num_f*4 + y*4 + z*2 + w] = Random_Normal(loc, trim);
+						fdc[x*ch_in*4 + y*4 + z*2 + w] =0.005;// Random_Normal(loc, trim);
 				}
 			}
-			bdc[x] =  Random_Normal(loc, trim);
-			b1[x] = Random_Normal(loc, trim);
+			bdc[x] = 0;// Random_Normal(loc, trim);
+			b1[x] = 0;//Random_Normal(loc, trim);
 		}
 
 		ch_in = num_f ;
@@ -158,9 +158,9 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 				for (int z=0;z<3;z++)
 					for(int w=0;w<3;w++)
 					{
-						f2[x*num_f*9 + y*9 + z*3 + w] = Random_Normal(loc, trim);
+						f2[x*ch_in*9 + y*9 + z*3 + w] = 0.005;//Random_Normal(loc, trim);
 					}
-			b2[x] =  Random_Normal(loc, trim);
+			b2[x] = 0;// Random_Normal(loc, trim);
 		}
 
 		filters[last_pos*2] = f1;
@@ -168,7 +168,7 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 		bias[last_pos*2] = b1;
 		bias[last_pos*2 + 1] = b2;
 		f_dc[i-1] = fdc;
-		b_dc[i] = bdc;
+		b_dc[i-1] = bdc;
 		last_pos++;
 	}
 	printf("\nlast_pos:%d",last_pos);
@@ -182,9 +182,9 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 			for (int z=0;z<1;z++)
 				for(int w=0;w<1;w++)
 				{
-					out_f[x*num_f*1 + y*1 + z*1 + w] = Random_Normal(loc, trim);
+					out_f[x*ch_in*1 + y*1 + z*1 + w] = 0.005;//Random_Normal(loc, trim);
 				}
-		out_b[x] =  Random_Normal(loc, trim);
+		out_b[x] = 0;// Random_Normal(loc, trim);
 	}
 	filters[last_pos*2] = out_f;
 	bias[last_pos*2] = out_b;
@@ -652,7 +652,7 @@ int main(void) {
 	for (int i=0;i<ch_num; i++)
 		for (int j=0;j<dim;j++)
 			for (int k=0;k<dim;k++)
-				img[i*ch_num*dim*dim +j*dim + k] = ((i+1)*(j*2+k*1)*1.3 +1)/(ch_num*dim*dim);
+				img[i*dim*dim +j*dim + k] = ((i+1)*(j*2+k*1)*1.3 +i);
 
 	struct init_param_ *ptr_init_param,init_param;
 	ptr_init_param = &init_param;
@@ -679,7 +679,7 @@ int main(void) {
 	ptr_params->num_f = 16;
 	ptr_params->filters=ptr_init_param->filters;
 	ptr_params->f_dc = ptr_init_param->f_dc;
-
+	ptr_params->b_dc =ptr_init_param->b_dc;
 	predict(ptr_images_data, ptr_params);
 
 
