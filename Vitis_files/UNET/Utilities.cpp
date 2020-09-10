@@ -90,7 +90,7 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 				for (int z=0;z<3;z++)
 					for(int w=0;w<3;w++)
 					{
-						f1[x*ch_in*9 + y*9 + z*3 + w] =0.05;// Random_Normal(loc, trim);
+						f1[x*ch_in*9 + y*9 + z*3 + w] =0.005;// Random_Normal(loc, trim);
 					}
 			b1[x] =0;//  Random_Normal(loc, trim);
 		}
@@ -110,7 +110,7 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 				for (int z=0;z<3;z++)
 					for(int w=0;w<3;w++)
 					{
-						f2[x*ch_in*9 + y*9 + z*3 + w] =0.0005;// Random_Normal(loc, trim);
+						f2[x*ch_in*9 + y*9 + z*3 + w] =0.005;// Random_Normal(loc, trim);
 					}
 			b2[x] =0;// Random_Normal(loc, trim);
 		}
@@ -182,7 +182,7 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 			for (int z=0;z<1;z++)
 				for(int w=0;w<1;w++)
 				{
-					out_f[x*ch_in*1 + y*1 + z*1 + w] = 0.005;//Random_Normal(loc, trim);
+					out_f[x*ch_in*1 + y*1 + z*1 + w] = 0.001;//Random_Normal(loc, trim);
 				}
 		out_b[x] = 0;// Random_Normal(loc, trim);
 	}
@@ -266,7 +266,7 @@ void Activation_Function(struct act_func_data_ *act_func_data)
 	//return res;
 }
 
-float Dice_Coef(float ***logs, float ***target,int dim)
+float Dice_Coef(float *logs, float ***target,int dim)
 {
 
 	//int mylen = dim*dim;
@@ -277,8 +277,8 @@ float Dice_Coef(float ***logs, float ***target,int dim)
 		for(int x=0; x<dim; x++)
 			for(int y=0; y<dim; y++)
 			{
-				numer[i][x][y]=(logs[i][x][y])*(target[i][x][y]);
-				denom[i][x][y] = logs[i][x][y] + target[i][x][y];
+				numer[i][x][y]=(logs[x*dim +y])*(target[i][x][y]);
+				denom[i][x][y] = logs[ x*dim +y] + target[i][x][y];
 			}
 	float sum_num=0,sum_den=0;
 	for(int i=0; i<1; i++)
@@ -350,22 +350,22 @@ float ****make_4darray(int num,int channels,int dim)
 
 
 
-void normalize_custom(struct norm_data_ *norm_data)
+void normalize_custom(float *image,int dim,int code)
 {
-	float ***image = norm_data->image;
-	int dim = norm_data->dim;
+	//float ***image = norm_data->image;
+	//int dim= 64;//norm_data->dim;
 	//float ***res = make_3darray(1,dim,dim);
-	int code = norm_data->code;
+	//int code = norm_data->code;
 	if(code == 0) //normalize possible inf edges
 	{
 		for (int i=0; i<dim; i++)
 		{
 			for(int j=0; j<dim; j++)
 			{
-				if(image[0][i][j]>4)
-					image[0][i][j]=4;
-				else if(image[0][i][j]<-4)
-					image[0][i][j]=-4;
+				if(image[i*dim+j]>4)
+					image[i*dim+j]=4;
+				else if(image[i*dim+j]<-4)
+					image[i*dim+j]=-4;
 			}
 		}
 	}
@@ -375,10 +375,10 @@ void normalize_custom(struct norm_data_ *norm_data)
 		{
 			for(int j=0; j<dim; j++)
 			{
-				if(image[0][i][j]>0.65)
-					image[0][i][j]=1;
-				else if(image[0][i][j]<0.35)
-					image[0][i][j]=0;
+				if(image[i*dim+j]>0.65)
+					image[i*dim+j]=1;
+				else if(image[i*dim+j]<0.35)
+					image[i*dim+j]=0;
 			}
 		}
 	}

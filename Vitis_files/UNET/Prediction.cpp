@@ -130,15 +130,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		while(!XConv_IsDone(&conv_ip));
 
 		printf("HW Calculation Complete!(Layer : %d.1)\n",curr_layer);
-		if(curr_layer==1){
-		for (int j=0;j<dim/16;j++)
-		{
-			for (int k=0;k<dim/16;k++)
-				printf("%f\t",temp1[j*dim + k]);
-			printf("\n");
-		}
-		//return;
-		}
+
 
 		ch_num = num_f;
 
@@ -194,16 +186,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 			printf("HW Calculation Complete!(Layer : %d.2)\n",curr_layer);
 
 			printf("HW Calculation Complete!(Layer : %d.1)\n",curr_layer);
-			if(curr_layer==1)
-			{
-			for (int j=0;j<dim/16;j++)
-			{
-				for (int k=0;k<dim/16;k++)
-					printf("%f\t",skip[j*dim + k]);
-				printf("\n");
-			}
 
-			}
 			//return;
 			XAxiDma_Reset(&axiDMA0);
 			while(!XAxiDma_ResetIsDone(&axiDMA0)){}
@@ -269,14 +252,10 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		}
 	}
 
-	printf("\n---------------------------------------\nResult2:\n\n");
-	for (int j=0;j<dim;j++)
-	{
-		for (int k=0;k<dim;k++)
-			printf("%f\t",temp0[j*dim + k]);
-		printf("\n");
-	}
+
+	/*
 	return;
+	*/
 	////////////////  Transposed convolution  //////////////////////////
 	//conv_out is the input image
 
@@ -332,8 +311,11 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		while(!XAxiDma_ResetIsDone(&axiDMA5)){}
 
 
+
+
 		ch_num = num_f;
 		dim = o_dim;
+
 
 		/////// CONCAT ////////
 
@@ -343,11 +325,12 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 			{
 				for (int k=0;k<dim;k++)
 				{
-					temp0[i*dim*dim +j*dim + k] = temp1[i*ch_num*dim*dim +j*dim + k];
-					temp0[(i+ch_num)*dim*dim +j*dim + k] = skip[i*ch_num*dim*dim +j*dim + k];
+					temp0[i*dim*dim +j*dim + k] = temp1[i*dim*dim +j*dim + k];//#TODO :It can extend temp1 just by adding skip at the end(it will cause temp0/1 loop problems(fix:use skip as temp in conv1.1 res))
+					temp0[(i+ch_num)*dim*dim +j*dim + k] = skip[i*dim*dim +j*dim + k];
 				}
 			}
 		}
+
 
 		// free curr skip
 		//
@@ -477,8 +460,8 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 	}
 
 
-	//normalize_custom(ptr_norm_data);//it changes the conv_out ifself
+	//normalize_custom(temp1);//it changes the conv_out ifself
 
-	//float accuracy = Dice_Coef(conv_out, label,dim);
+	//float accuracy = Dice_Coef(temp1, label,dim);
 	//printf("\n\nAccuracy: %.2f % \n\n", (accuracy*100));
 }

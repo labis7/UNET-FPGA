@@ -32,7 +32,7 @@ void load_params();
 void load_images();
 void load_labels();
 void predict(struct images_data_ *images_data,struct params_ *params);
-void normalize_custom(struct norm_data_ *);
+void normalize_custom(float *,int,int);
 
 ////////////////////////
 //////  Maxpool ///////
