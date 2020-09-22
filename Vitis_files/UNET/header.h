@@ -16,6 +16,11 @@
 #include<xparameters.h>
 #include<xaxidma.h>
 #include<math.h>
+#include<ff.h>
+#include "xtime_l.h"
+#include <stdlib.h>
+#include <unistd.h>
+
 float Dice_Coef(float ***logs, float ***target,int dim);
 void concat(struct concat_crop_data_ *);
 void convTransp(struct conv_data_ *);
@@ -102,7 +107,24 @@ float ***make_3darray(int channels,int dim);
 
 
 #endif /* MAIN_H_ */
+/*
 
+#define PMU_PMCNTENSET_ENABLE_CLOCK_COUNT 	31
+#define PMU_PMCR_IDCODE 					16
+#define PMU_PMCR_N 							11
+#define PMU_PMCR_LC 						6
+#define PMU_PMCR_DP 						5
+#define PMU_PMCR_X							4
+#define PMU_PMCR_D							3
+#define PMU_PMCR_C							2
+#define PMU_PMCR_P							1
+#define PMU_PMCR_E							0
+#define PMCR_ENABLE 						((0x1 << PMU_PMCR_E) | (0x1 << PMU_PMCR_LC) | (0x1 << PMU_PMCR_C))
+#define PMCR_DISABLE 						(0x0 << PMU_PMCR_E)
+#define PMCR_PMCCNTR_RESET  				(0x1 << PMU_PMCR_C)
+#define PMCNTENSET_VAL 						(0x1 << PMU_PMCNTENSET_ENABLE_CLOCK_COUNT)
+
+*/
 struct conv_data_
 {
 	/* -------------- Convolution ---------------
@@ -137,7 +159,7 @@ struct images_data_
 	 * we have the basic type (ch_num,dim,dim)
 	 * im_num: The number of images/labels available in the folders
 	 */
-	float **images,****labels;
+	float **images,**labels;
 	int im_num, dim;
 };
 struct gn_data_

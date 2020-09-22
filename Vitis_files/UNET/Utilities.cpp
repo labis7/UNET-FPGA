@@ -7,7 +7,6 @@
  Description : Utilities of U-Net, including initializations and important 3d,4d matrix building tools
  ============================================================================
  */
-#include <stdlib.h>
 #include <header.h>
 
 //#include <time.h>
@@ -171,7 +170,7 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 		b_dc[i-1] = bdc;
 		last_pos++;
 	}
-	printf("\nlast_pos:%d",last_pos);
+	//printf("\nlast_pos:%d",last_pos);
 	//Now build the last one 1x1 conv filters
 	num_f = 1; //we need 1 channels for the output(same as input)
 	float *out_f = (float *)malloc(num_f*ch_in*1*1*sizeof(float));//make_4darray(num_f, ch_in, 1);//1x1 output filter
@@ -645,7 +644,7 @@ int main(void) {
 
 	int ch_num,dim;
 	ch_num = 1;
-	dim = 64;
+	dim = 128;
 
 
 	float *img =(float *)malloc(dim*dim*sizeof(float));
@@ -659,10 +658,18 @@ int main(void) {
 	ptr_init_param->layers = 5;
 	ptr_init_param->num_f=16;
 	ptr_init_param->trim = 0.01;
-
+	//XTime tStart, tEnd;
+	//XTime_GetTime(&tStart);
 	Initialize_Parameters(ptr_init_param);
+	//XTime_GetTime(&tEnd);
 
-
+	//XTime tStart1, tEnd1;
+	//XTime_GetTime(&tStart1);
+	//usleep(80000); //80ms delay
+	//XTime_GetTime(&tEnd1);
+	//printf("\nTime : %.4f ms.\n",1.0 * (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
+	//return 0;
+	//printf("Output took %.2f ms.\n",1000.0 * (tEnd - tStart) / (COUNTS_PER_SECOND/1000000));
 	struct images_data_ *ptr_images_data, images_data;// = &images_data;
 	ptr_images_data = &images_data;
 	float **image =(float **)malloc(sizeof(float *));
