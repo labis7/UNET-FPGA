@@ -116,7 +116,7 @@ int main() {
 
 
 
-	my_ip_hls(image,filter, bias,result,dataIn);
+	Conv(image,filter, bias,result,dataIn);
 
 
 	//allocate space for the result(known result dimensions)

@@ -8,7 +8,7 @@
  ============================================================================
  */
 #include <header.h>
-
+//static FATFS  fatfs;
 //#include <time.h>
 
 ////////////// DEF ////////////////
@@ -645,8 +645,34 @@ int main(void) {
 	int ch_num,dim;
 	ch_num = 1;
 	dim = 128;
+////////////////////// SD CARD MOUNTING ////////////////////////////
+/*	FRESULT rc;
+	TCHAR *Path = "0:/";
+	rc = f_mount(&fatfs,Path,0);
+	if (rc) {
+		printf(" ERROR : f_mount returned %d\r\n", rc);
+		return 0;
+	}*/
+///////////////////////////////////////////////////////////////////////
 
+	struct images_data_ *ptr_images_data,images_data;
+	ptr_images_data = &images_data;
+	ptr_images_data->im_num=4;
+	ptr_images_data->dim=64;
+	load_images(ptr_images_data);
 
+/*
+	////// Unmounting SD Card /////////////
+	rc = f_mount(0,Path,0); //Unmount
+	if (rc) {
+		printf(" ERROR : f_unmount returned %d\r\n", rc);
+		return 0;
+	}
+	//////////////////////////////////////
+*/
+
+	return 0;
+/*
 	float *img =(float *)malloc(dim*dim*sizeof(float));
 	for (int i=0;i<ch_num; i++)
 		for (int j=0;j<dim;j++)
@@ -670,7 +696,7 @@ int main(void) {
 	//printf("\nTime : %.4f ms.\n",1.0 * (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
 	//return 0;
 	//printf("Output took %.2f ms.\n",1000.0 * (tEnd - tStart) / (COUNTS_PER_SECOND/1000000));
-	struct images_data_ *ptr_images_data, images_data;// = &images_data;
+	//struct images_data_ *ptr_images_data, images_data;// = &images_data;
 	ptr_images_data = &images_data;
 	float **image =(float **)malloc(sizeof(float *));
 	image[0] =img;
@@ -691,6 +717,7 @@ int main(void) {
 
 
 	return 0;
+	*/
 	///////////////////////////////////////////////////////
 	////////////////// TESTING SECTION ////////////////////
 	/*

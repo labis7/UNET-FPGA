@@ -8,7 +8,10 @@ static float filt[F_DIM*F_DIM];
 static float res[128][128];
 //static float b[10];
 
-void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias, stream<float> &result, data &slaveIn) {
+void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stream<float> &result, data &slaveIn) {
+//#pragma HLS RESOURCE variable=res core=RAM_2P_URAM
+//#pragma HLS ARRAY_PARTITION variable=res complete dim=2
+//#pragma HLS ARRAY_PARTITION variable=res cyclic factor=4 dim=1
 #pragma HLS INTERFACE axis register both port=image
 #pragma HLS INTERFACE axis register both port=filter
 #pragma HLS INTERFACE axis register both port=bias
@@ -72,8 +75,11 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 	f_num = slaveIn.f_num;
 
 	for(int c=0; c<ch ; c++)
+#pragma HLS loop_tripcount min=256 max=256
 		for(int i=0;i<dim;i++)
+#pragma HLS loop_tripcount min=16 max=16
 			for(int j=0;j<dim;j++)
+#pragma HLS loop_tripcount min=16 max=16
 				img[c*dim*dim + i*dim+j]=image.read();
 
 
@@ -125,10 +131,11 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 				img_t[i][x][y] = img[i][x-pad][y-pad];
 	}
 	*/
+#pragma HLS inline
 	//init with zeros 1st row of linebuffer plus the 1st and last element(padding) for each row of  the linebuffer
 	for(int y=0; y<(dim_t); y++)
-#pragma HLS loop_tripcount min=130 max=130
-//#pragma HLS pipeline
+#pragma HLS loop_tripcount min=18 max=18
+#pragma HLS pipeline
 		img_t0[y] = 0;
 	img_t2[0]=0;
 	img_t2[dim_t-1]=0;
@@ -142,15 +149,16 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 	int counter=0;
 	for (int i=0; i<f_num; i++)//number of filters
 	{
+#pragma HLS pipeline
 		counter=0;
-#pragma HLS loop_tripcount min=16 max=16
+#pragma HLS loop_tripcount min=128 max=128
 		float bias_t = bias.read();
 		for(int x=0; x<o_dim; x++)
 		{
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=16 max=16
 			for(int y=0; y<o_dim; y++)
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=16 max=16
 				res[x][y] = bias_t;
 		}
 		//seeking on the temp image sub array that we want to mult item wise and then add them for the (x,y) result
@@ -158,12 +166,13 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 		for(int j=0; j < ch ; j++)
 		{
 
-#pragma HLS loop_tripcount min=32 max=32
+#pragma HLS loop_tripcount min=256 max=256
 
 			//load the 2nd row of the image,assuming that the previous iteration completed the init
 			//memcpy(img_t1+1, image +j*dim*dim , sizeof(float)*320);
 			for(int z = 1 ; z<dim_t-1; z++)
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=16 max=16
 				img_t1[z] =img[counter++];// image.read();
 
 
@@ -191,18 +200,18 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 
 			for(int x=0; x<o_dim-1; x++)
 			{
-//#pragma HLS pipeline
-#pragma HLS loop_tripcount min=127 max=127
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=16 max=16
 				//memcpy(img_t2+1, image+j*dim*dim +(x+1)*dim , sizeof(float)*320);
 				for(int z = 1 ; z<dim_t-1; z++)
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=16 max=16
 					img_t2[z] = img[counter++];//image.read();
 
 				for(int y=0; y<o_dim; y+=2)
 				{
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=64 max=64
+#pragma HLS loop_tripcount min=8 max=8
 
 					float reg0 = img_t0[y]*filt[0];
 					float reg1 = img_t0[y+1]*filt[1];
@@ -245,7 +254,7 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 				//memcpy(img_t1+1, img_t2+1 , sizeof(float)*dim);
 				for(int y=1; y<(dim_t-1); y+=2)
 				{
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=16 max=16
 #pragma HLS pipeline
 					img_t0[y] = img_t1[y];
 					img_t1[y] = img_t2[y];
@@ -255,13 +264,13 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 			}
 			//LAST ITER, the shift ups for 1st and 2nd rows are completed above
 			for(int y=1; y<(dim_t-1); y++)
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=16 max=16
 #pragma HLS pipeline
 				img_t2[y] = 0;
 
 			for(int y=0; y<o_dim; y+=2)
 			{
-#pragma HLS loop_tripcount min=64 max=64
+#pragma HLS loop_tripcount min=8 max=8
 #pragma HLS pipeline
 				//for(int t =y; t<y+3;t++)
 					//res[o_dim -1][y]+=img_t0[t]*filt[0*F_DIM + t-y];
@@ -304,16 +313,16 @@ void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias,
 
 			}
 			for(int y=1; y<(dim_t-1); y++)
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=16 max=16
 #pragma HLS pipeline
 				img_t0[y] = 0;
 		}
 		for(int x=0; x<o_dim; x++){
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=16 max=16
 #pragma HLS pipeline
 			for(int y=0; y<o_dim; y++)
 			{
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=16 max=16
 				float tmp=res[x][y];
 				if(tmp<=0)
 					result.write(0);

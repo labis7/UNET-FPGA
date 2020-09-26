@@ -28,14 +28,15 @@ void maxpool(struct maxpool_data_ *);
 void Activation_Function(struct act_func_data_ *);
 void conv(struct conv_data_ *);
 int calc_f_num(int c);
+int calc_ch_num(int,int);
 void GN();
 
 void init_dma();
 void setupIPs();
 
-void load_params();
-void load_images();
-void load_labels();
+void load_params(struct params_ *);
+void load_images(struct images_data_ *);
+void load_labels(struct images_data_ *);
 void predict(struct images_data_ *images_data,struct params_ *params);
 void normalize_custom(float *,int,int);
 

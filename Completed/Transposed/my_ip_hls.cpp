@@ -12,7 +12,7 @@ static float res[10][10][10];//+2 happens when we have pad==1, we need a tempora
 static float filt[10][10][F_DIM][F_DIM];
 static float b[10];
 */
-void my_ip_hls(stream<float> &image, stream<float> &filter, stream<float> &bias, stream<float> &result,data &slaveIn, ap_uint<1> &TLAST) {
+void Tconv(stream<float> &image, stream<float> &filter, stream<float> &bias, stream<float> &result,data &slaveIn, ap_uint<1> &TLAST) {
 
 #pragma HLS INTERFACE axis register both port=result
 #pragma HLS INTERFACE axis register both port=bias

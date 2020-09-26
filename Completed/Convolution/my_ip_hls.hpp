@@ -38,5 +38,5 @@ void rules(uint32 rule1,uint32 rule_2);
 void get_rules(uint32 &tmp,uint32 &tmp1);
 */
 
-void my_ip_hls(stream<float> &image, stream<float> &filter,stream<float> &bias, stream<float> &result, data &slaveIn);
+void Conv(stream<float> &image, stream<float> &filter,stream<float> &bias, stream<float> &result, data &slaveIn);
 //void my_ip_hls();

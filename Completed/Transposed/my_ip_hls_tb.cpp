@@ -13,12 +13,12 @@ using namespace hls;
 int main() {
 
 
-	int ch=256;
-	int dim = 8;
+	int ch=4;
+	int dim = 4;
 	float *img=(float *)malloc(ch*dim*dim*sizeof(float));
 
 	int f_num;
-	f_num = 128;
+	f_num = 2;
 	float *filt = (float *)malloc(f_num*ch*F_DIM*F_DIM*sizeof(float));
 	float b[f_num];
 	int counter=1;
@@ -117,7 +117,7 @@ int main() {
 
 
 	ap_uint<1> TLAST;
-	my_ip_hls(image,filter, bias,result,dataIn, TLAST);
+	Tconv(image,filter, bias,result,dataIn, TLAST);
 
 
 	//allocate space for the result(known result dimensions)
