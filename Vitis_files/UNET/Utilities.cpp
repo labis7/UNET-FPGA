@@ -8,7 +8,7 @@
  ============================================================================
  */
 #include <header.h>
-//static FATFS  fatfs;
+static FATFS  fatfs;
 //#include <time.h>
 
 ////////////// DEF ////////////////
@@ -194,24 +194,25 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 	ptr_init_param->b_dc = b_dc;
 }
 
-void Activation_Function(struct act_func_data_ *act_func_data)
+void Activation_Function(float *Z,int dim)//(struct act_func_data_ *act_func_data)
 {
-	float ***Z;
-	int code, channels, dim;
-	Z = act_func_data->Z;
-	code = act_func_data->code;
-	channels = act_func_data->channels;
-	dim = act_func_data->dim;
+	//float *Z;
+	//int code, channels, dim;
+	//Z = act_func_data->Z;
+	//code = act_func_data->code;
+	//channels = act_func_data->channels;
+	//dim = act_func_data->dim;
 
-	float ***res = make_3darray(channels, dim);
+	//float *res = make_3darray(channels, dim);
 	//Approximation of Sigmoid,  f(x) = x / (1 + abs(x))
-	if(code == 1)
-	{
-		for (int i=0; i<channels; i++)
-			for (int j=0; j<dim; j++)
-				for (int k=0; k<dim; k++)
-					res[i][j][k] = (1/(1 + exp(- Z[i][j][k]))); //Thats the original sigmoid!
-	}
+
+	//if(code == 1)
+	//{
+	for (int j=0; j<dim; j++)
+		for (int k=0; k<dim; k++)
+			Z[j*dim + k] = (1/(1 + exp(- Z[j*dim+k]))); //Thats the original sigmoid!
+	//}
+	/*
 	else if(code == 2)//Sigmoid backpropagation function
 	{
 		float ***dA;
@@ -261,31 +262,32 @@ void Activation_Function(struct act_func_data_ *act_func_data)
 			}
 		}
 	}
-	act_func_data->res = res;
+	*/
+	//act_func_data->res = res;
 	//return res;
 }
 
-float Dice_Coef(float *logs, float ***target,int dim)
+float Dice_Coef(float *logs, float *target,int dim)
 {
 
 	//int mylen = dim*dim;
 	//building numerator(logs*target)  //#TODO :many optimization available
-	float ***numer = make_3darray(1,dim);
-	float ***denom = make_3darray(1,dim);
+	float *numer = (float *)malloc(dim*dim*sizeof(float));
+	float *denom = (float *)malloc(dim*dim*sizeof(float));
 	for(int i=0; i<1; i++)
 		for(int x=0; x<dim; x++)
 			for(int y=0; y<dim; y++)
 			{
-				numer[i][x][y]=(logs[x*dim +y])*(target[i][x][y]);
-				denom[i][x][y] = logs[ x*dim +y] + target[i][x][y];
+				numer[x*dim + y]=(logs[x*dim +y])*(target[x*dim + y]);
+				denom[x*dim + y] = logs[ x*dim +y] + target[x*dim + y];
 			}
 	float sum_num=0,sum_den=0;
 	for(int i=0; i<1; i++)
 		for(int x=0; x<dim; x++)
 			for(int y=0; y<dim; y++)
 			{
-				sum_num += numer[i][x][y];
-				sum_den += denom[i][x][y];
+				sum_num += numer[x*dim + y];
+				sum_den += denom[x*dim + y];
 			}
 	float loss = 1 - (float)((2*sum_num)/(sum_den));
 	return (float)exp(-loss);
@@ -646,13 +648,12 @@ int main(void) {
 	ch_num = 1;
 	dim = 128;
 ////////////////////// SD CARD MOUNTING ////////////////////////////
-/*	FRESULT rc;
-	TCHAR *Path = "0:/";
-	rc = f_mount(&fatfs,Path,0);
+	FRESULT rc;
+	rc = f_mount(&fatfs,"0:/",0);
 	if (rc) {
 		printf(" ERROR : f_mount returned %d\r\n", rc);
 		return 0;
-	}*/
+	}
 ///////////////////////////////////////////////////////////////////////
 
 	struct images_data_ *ptr_images_data,images_data;
@@ -660,64 +661,42 @@ int main(void) {
 	ptr_images_data->im_num=4;
 	ptr_images_data->dim=64;
 	load_images(ptr_images_data);
+	load_labels(ptr_images_data);
 
-/*
+
+	struct params_ *ptr_params,params;
+	ptr_params = &params;
+	ptr_params->layers = 10;
+	ptr_params->num_f =16;
+	ptr_params->gn_batch =2;
+	load_params(ptr_params);
+
 	////// Unmounting SD Card /////////////
-	rc = f_mount(0,Path,0); //Unmount
+	rc = f_mount(0,"0:/",0); //Unmount
 	if (rc) {
 		printf(" ERROR : f_unmount returned %d\r\n", rc);
 		return 0;
 	}
 	//////////////////////////////////////
-*/
+
+	while(1)
+	{
+		int answer=1;
+		fflush(stdin);
+		predict(ptr_images_data, ptr_params);
+		printf("\n---------------------------------------\n");
+		printf("Press:\n0) Restart\n1) Exit");
+		scanf("%d",&answer);fflush(stdin);
+		if(answer != 0)
+			break;
+		printf("\n---------------------------------------\n");
+	}
+	printf("\n---------------------------------------\n");
+	printf("Releasing resources . . .\n");
+	printf("Terminating . . . Done!");
 
 	return 0;
-/*
-	float *img =(float *)malloc(dim*dim*sizeof(float));
-	for (int i=0;i<ch_num; i++)
-		for (int j=0;j<dim;j++)
-			for (int k=0;k<dim;k++)
-				img[i*dim*dim +j*dim + k] = ((i+1)*(j*2+k*1)*1.3 +i);
 
-	struct init_param_ *ptr_init_param,init_param;
-	ptr_init_param = &init_param;
-	ptr_init_param->layers = 5;
-	ptr_init_param->num_f=16;
-	ptr_init_param->trim = 0.01;
-	//XTime tStart, tEnd;
-	//XTime_GetTime(&tStart);
-	Initialize_Parameters(ptr_init_param);
-	//XTime_GetTime(&tEnd);
-
-	//XTime tStart1, tEnd1;
-	//XTime_GetTime(&tStart1);
-	//usleep(80000); //80ms delay
-	//XTime_GetTime(&tEnd1);
-	//printf("\nTime : %.4f ms.\n",1.0 * (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
-	//return 0;
-	//printf("Output took %.2f ms.\n",1000.0 * (tEnd - tStart) / (COUNTS_PER_SECOND/1000000));
-	//struct images_data_ *ptr_images_data, images_data;// = &images_data;
-	ptr_images_data = &images_data;
-	float **image =(float **)malloc(sizeof(float *));
-	image[0] =img;
-	ptr_images_data->dim=dim;
-	ptr_images_data->im_num=1;
-	ptr_images_data->images=image;
-
-
-	struct params_ *ptr_params, params;
-	ptr_params = &params;
-	ptr_params->bias =ptr_init_param->bias;
-	ptr_params->layers = 10;
-	ptr_params->num_f = 16;
-	ptr_params->filters=ptr_init_param->filters;
-	ptr_params->f_dc = ptr_init_param->f_dc;
-	ptr_params->b_dc =ptr_init_param->b_dc;
-	predict(ptr_images_data, ptr_params);
-
-
-	return 0;
-	*/
 	///////////////////////////////////////////////////////
 	////////////////// TESTING SECTION ////////////////////
 	/*
@@ -754,7 +733,7 @@ int main(void) {
 	*/
 	return EXIT_SUCCESS;
 }
-
+/*
 float *****testff(float ***t){
 	int channels =2;
 	int dim=5;
@@ -773,7 +752,7 @@ float *****testff(float ***t){
 	}
 
 	return 0;
-	/*
+
 	float ****t2 = make_4darray(1,2,3);
 	for (int i=0;i<1;i++)
 		for (int j=0;j<2;j++)
@@ -788,5 +767,5 @@ float *****testff(float ***t){
 	t_array[0] = t;
 	t_array[1] = t2;
 	return t_array;
-	*/
-}
+
+}*/

@@ -1,7 +1,7 @@
 //
 
 #include<header.h>
-static FATFS  fatfs;
+
 void load_images(struct images_data_ *images_data)
 {
 
@@ -12,18 +12,9 @@ void load_images(struct images_data_ *images_data)
 	//create char space for image names
 	image_names = (char **)malloc(im_num*sizeof(char *));
 	for (int i = 0; i<im_num ; i++)
-		image_names[i]=(char *)malloc(50*sizeof(char));
-
-	///// MOUNTING SD CARD ////////
+		image_names[i]=(char *)malloc(20*sizeof(char));
 
 	FRESULT rc;
-	//TCHAR *Path=(char*)malloc(20*sizeof(char));
-	//strcpy( Path,"0:/");
-	rc = f_mount(&fatfs,"0:/",0);
-	if (rc) {
-		printf(" ERROR : f_mount returned %d\r\n", rc);
-		return;
-	}
 
 	DIR dir;
 	//struct dirent *ent;
@@ -52,7 +43,7 @@ void load_images(struct images_data_ *images_data)
 	FIL fd;
 	float **image = (float**)malloc(im_num*sizeof(float *));
 
-	for(int im=0; im<1; im++)
+	for(int im=0; im<im_num; im++)
 	{
 	//int im =0;
 		char path_name[200];
@@ -75,29 +66,18 @@ void load_images(struct images_data_ *images_data)
 		char line1[20];
 		f_gets(line1, sizeof(line1), &fd);
 
-
-
-		char del1[2]=" ";
-		char *token=(char *)malloc(20*sizeof(char));
-		token = strtok(line1,del1);
-		height = atoi(token);
-		token = strtok(NULL,del1);
-		width = atoi(token);
+		sscanf(line1,"%d %d\n",&height,&width);
 
 		char line2[10];
-		char del2[2] ="\n";
-		f_gets(line2, sizeof(line2), &fd);
-		token = strtok(line2,del2);
-		maxval = atoi(token);
 
-		//sscanf(line1,"%d %d\n",&height,&width);
+		f_gets(line2, sizeof(line2), &fd);
+
+		sscanf(line2,"%d\n",&maxval);
 
 		//f_close(fd);
 		//fflush(stdout);
-	}
 
-}
-/*
+
 
 		//////////////////////////////////////////
 		float *img = (float *)malloc(dim*dim*sizeof(float));
@@ -105,14 +85,14 @@ void load_images(struct images_data_ *images_data)
 	    {
 	    	int ch_num=1,dim=height;
 			uint16_t *rbuffer = (uint16_t *)malloc(dim*dim*sizeof(uint16_t));
-			UINT *br;
-			f_read(fd, (void *)rbuffer,(width * height)*sizeof(uint16_t), br);
-			if (*br != (width * height)*sizeof(uint16_t)) {
+			UINT br;
+			f_read(&fd, (void *)rbuffer,(width * height)*sizeof(uint16_t), &br);
+			if (br != (width * height)*sizeof(uint16_t)) {
 				printf("Error reading pixel values!\n");
-				f_close(fd);
+				f_close(&fd);
 				exit(1);
 			}
-			f_close(fd);
+			f_close(&fd);
 			int offset=0;
 			for(int i = 0; i<ch_num; i++ )
 			{
@@ -136,14 +116,14 @@ void load_images(struct images_data_ *images_data)
 	    {
 	    	int ch_num=1,dim=height;
 			uint8_t *rbuffer = (uint8_t *)malloc(dim*dim*sizeof(uint8_t));
-			UINT *br;
-			f_read(fd, (void *)rbuffer,(width * height)*sizeof(uint8_t), br);
-			if (*br != (width * height)*sizeof(uint8_t)) {
+			UINT br;
+			f_read(&fd, (void *)rbuffer,(width * height)*sizeof(uint8_t), &br);
+			if (br != (width * height)*sizeof(uint8_t)) {
 				printf("Error reading pixel values!\n");
-				f_close(fd);
+				f_close(&fd);
 				exit(1);
 			}
-			f_close(fd);
+			f_close(&fd);
 			int offset=0;
 			for(int i = 0; i<ch_num; i++ )
 			{
@@ -162,12 +142,13 @@ void load_images(struct images_data_ *images_data)
 			free(rbuffer);
 			image[im] = img;
 	    }
-	//}
+	}
 
     images_data->images = image;
 	printf("Done!\n");
+
 }
-*/
+
 
 
 void load_labels(struct images_data_ *images_data)
@@ -185,30 +166,28 @@ void load_labels(struct images_data_ *images_data)
 	FRESULT rc;
 
 
-	DIR *dir;
+	DIR dir;
 	//struct dirent *ent;
-	FILINFO* ent;
-	f_opendir (dir,"labis/labels");
-	if ( dir != NULL ) {
+	FILINFO ent;
+	f_opendir (&dir,"labis/labels");
+	if ( &dir != NULL ) {
 		printf("\nLoading Labels . . .");
 	  // print all the files and directories within directory //
-		int i=0;
-		int count=0;
-		f_readdir (dir, ent);
+		f_readdir (&dir, &ent);
 		for(int i=0; i<im_num; i++)
 		{
 			//ent->
-			strcpy(label_names[i], ent->fname);
+			strcpy(label_names[i], ent.fname);
 			//printf("\n%d) %s\n",i,image_names[i]);
 
-			f_readdir(dir, ent);
+			f_readdir(&dir, &ent);
 		}
-		f_closedir (dir);
+		f_closedir (&dir);
 	}
     char path_name[200];
     int width, height, maxval;
-    FIL *fd;
-    int ch_num=1;
+    FIL fd;
+
     //label = make_4darray(im_num, ch_num, dim);
 
     float **label =(float **)malloc(im_num*sizeof(float *));
@@ -218,50 +197,43 @@ void load_labels(struct images_data_ *images_data)
 
     	sprintf(path_name,"labis/labels/%s", label_names[im]);
 
-    	rc =f_open(fd, path_name, FA_READ);
+    	rc =f_open(&fd, path_name, FA_READ);
 		if (rc) {
 			printf("Could not open Label file!\n");
 			exit(1);
 		}
 
 		char line[5];
-		f_gets(line, sizeof(line), fd);
+		f_gets(line, sizeof(line), &fd);
 
 		if (strcmp(line, "P5\n") != 0) {
 			printf("Label is not in PGM(P5) format!\n");
-			f_close(fd);
+			f_close(&fd);
 			exit(1);
 		}
-		char line1[10];
-		f_gets(line1, sizeof(line1), fd);
+		char line1[20];
+		f_gets(line1, sizeof(line1), &fd);
 
-		char del1[2]=" ";
-		char *token;
-		token = strtok(line1,del1);
-		height = atoi(token);
-		token = strtok(NULL,del1);
-		width = atoi(token);
+		sscanf(line1,"%d %d\n",&height,&width);
 
 		char line2[10];
-		char del2[2] ="\n";
-		f_gets(line2, sizeof(line2), fd);
-		token = strtok(line2,del2);
-		maxval = atoi(token);
 
+		f_gets(line2, sizeof(line2), &fd);
 
+		sscanf(line2,"%d\n",&maxval);
 
 	    if (maxval == 65535)
 	    {
 	    	int ch_num=1,dim=height;
 			uint16_t *rbuffer = (uint16_t *)malloc(dim*dim*sizeof(uint16_t));
-			UINT *br;
-			f_read(fd, (void *)rbuffer,(width * height)*sizeof(uint16_t), br);
-			if (*br != (width * height)*sizeof(uint16_t)) {
+			UINT br;
+			f_read(&fd, (void *)rbuffer,(width * height)*sizeof(uint16_t), &br);
+			if (br != (width * height)*sizeof(uint16_t)) {
 				printf("Error reading pixel values!\n");
-				f_close(fd);
+				f_close(&fd);
 				exit(1);
 			}
-			f_close(fd);
+			f_close(&fd);
 			int offset=0;
 			for(int i = 0; i<ch_num; i++ )
 			{
@@ -282,14 +254,14 @@ void load_labels(struct images_data_ *images_data)
 	    {
 	    	int ch_num=1,dim=height;
 			uint8_t *rbuffer = (uint8_t *)malloc(dim*dim*sizeof(uint8_t));
-			UINT *br;
-			f_read(fd, (void *)rbuffer,(width * height)*sizeof(uint8_t), br);
-			if (*br != (width * height)*sizeof(uint8_t)) {
+			UINT br;
+			f_read(&fd, (void *)rbuffer,(width * height)*sizeof(uint8_t), &br);
+			if (br != (width * height)*sizeof(uint8_t)) {
 				printf("Error reading pixel values!\n");
-				f_close(fd);
+				f_close(&fd);
 				exit(1);
 			}
-			f_close(fd);
+			f_close(&fd);
 			int offset=0;
 			for(int i = 0; i<ch_num; i++ )
 			{
@@ -316,7 +288,7 @@ void load_params(struct params_ *params)
 {
 	// Unpacking //
 
-	int batch =params->gn_batch; //default:2
+	//int batch =params->gn_batch; //default:2
 	int layers = params->layers; //default:10
 	//int f_num = params->num_f;
 	/////////////////
@@ -349,17 +321,17 @@ void load_params(struct params_ *params)
 	}
 
 	uint32_t *rbuffer;
-	FIL *ptr;
-	f_open(ptr,"labis/weights.bin", FA_READ);
-	if(ptr == NULL)
+	FIL ptr;
+	f_open(&ptr,"labis/weights.bin", FA_READ);
+	if(&ptr == NULL)
 	{
 		printf("Couldnt load directory!\nExiting . . . ");
 		exit(1);
 	}
 	printf("Loading Parameters . . .");
 	rbuffer = (uint32_t *)malloc(sum*sizeof(int32_t));
-	UINT *br;
-	f_read(ptr, (void *)rbuffer, sum*sizeof(uint32_t), br);
+	UINT br;
+	f_read(&ptr, (void *)rbuffer, sum*sizeof(uint32_t), &br);
 	int pos=0;
 	for (int i=1;i<=layers; i++)
 	{
@@ -421,7 +393,7 @@ void load_params(struct params_ *params)
 
 	rbuffer = (uint32_t *)malloc(sum*sizeof(int32_t));
 	//UINT *br;
-	f_read(ptr, (void *)rbuffer, sum*sizeof(uint32_t), br);
+	f_read(&ptr, (void *)rbuffer, sum*sizeof(uint32_t), &br);
 	pos=0;
 	offset=0;
 	for (int i=1;i<=(layers-1); i++) //NOT THE LAST LAYER!!!
@@ -467,7 +439,7 @@ void load_params(struct params_ *params)
 	sum =((128*256) +(64*128)+(32*64)+(16*32))*2*2;
 	rbuffer = (uint32_t *)malloc(sum*sizeof(int32_t));
 	//UINT *br;
-	f_read(ptr, (void *)rbuffer, sum*sizeof(uint32_t), br);
+	f_read(&ptr, (void *)rbuffer, sum*sizeof(uint32_t), &br);
 	pos=0;
 	for (int i=6;i<=(layers-1); i++)
 	{
@@ -495,7 +467,7 @@ void load_params(struct params_ *params)
 	sum = 128+64+32+16;
 	rbuffer = (uint32_t *)malloc(sum*sizeof(int32_t));
 	//UINT *br;
-	f_read(ptr, (void *)rbuffer, sum*sizeof(uint32_t), br);
+	f_read(&ptr, (void *)rbuffer, sum*sizeof(uint32_t), &br);
 	pos=0;
 	for (int i=6;i<=(layers-1); i++)
 	{
@@ -514,7 +486,7 @@ void load_params(struct params_ *params)
 	params->f_dc = f_dc;
 	params->bias=bias;
 	params->filters=filters;
-	f_close(ptr);
+	f_close(&ptr);
 	free(rbuffer);
 	printf("Done!\n");
 

@@ -52,8 +52,8 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 
 
 
-	XTime t_all=0;
-	XTime tStart1, tEnd1;
+	//XTime t_all=0;
+	//XTime tStart1, tEnd1;
 
 
 
@@ -99,7 +99,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 	int predict_num;
 	scanf("%d", &predict_num);
 
-	predict_num=0;
+	//predict_num=0;
 	printf("\n");
 
 	//choose image for prediction(it can be a list saved in the struct)
@@ -113,6 +113,11 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		for (int j=0;j<dim;j++)
 			for (int k=0;k<dim;k++)
 				temp0[i*dim*dim +j*dim + k] = image[i*dim*dim +j*dim + k];
+
+
+
+
+
 
 	/*
 	struct conv_data_ *ptr_conv_data = &conv_data;
@@ -139,7 +144,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		//input: (1,dim,dim), filter :(16,1,3,3), output: (16,dim,dim)
 		num_f = calc_f_num(curr_layer);
 		//begin_counting_MPSoC_cycles();
-		XTime_GetTime(&tStart1);
+		//XTime_GetTime(&tStart1);
 
 		XConv_Set_slaveIn_ch(&conv_ip, ch_num);
 		XConv_Set_slaveIn_dim(&conv_ip, dim);
@@ -186,12 +191,12 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		//printf("HW Calculation Complete!(Layer : %d.1)\n",curr_layer);
 
 
-		XTime_GetTime(&tEnd1);
+		//XTime_GetTime(&tEnd1);
 		//XPAR_PSU_CORTEXA53_0_CPU_CLK_FREQ_HZ
-		printf("Layer : %d.1 , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
+		//printf("Layer : %d.1 , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
 		//end_counting_MPSoC_cycles();
 		ch_num = num_f;
-		t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
+		//t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
 		/////////////////////////////////////////////////////////////
 		//init_dma();
 		XAxiDma_Reset(&axiDMA0);
@@ -206,7 +211,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		//num_f = calc_f_num(curr_layer);
 
 
-		XTime_GetTime(&tStart1);
+		//XTime_GetTime(&tStart1);
 
 
 		XConv_Set_slaveIn_ch(&conv_ip, ch_num);
@@ -247,10 +252,10 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 			Xil_DCacheInvalidateRange((UINTPTR)skip, o_ch*o_dim*o_dim*sizeof(float));
 			while(!XConv_IsDone(&conv_ip));
 
-			XTime_GetTime(&tEnd1);
-			printf("Layer : %d.2 , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
+			//XTime_GetTime(&tEnd1);
+			//printf("Layer : %d.2 , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
 			//printf("HW Calculation Complete!(Layer : %d.2)\n",curr_layer);
-			t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
+			//t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
 			//printf("HW Calculation Complete!(Layer : %d.1)\n",curr_layer);
 
 			//return;
@@ -265,7 +270,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 
 			o_dim = dim/2;
 
-			XTime_GetTime(&tStart1);
+			//XTime_GetTime(&tStart1);
 
 			XMy_ip_hls_Set_slaveIn_ch(&my_ip_hls, ch_num);
 			XMy_ip_hls_Set_slaveIn_dim(&my_ip_hls, dim);
@@ -281,9 +286,9 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 			while(!XMy_ip_hls_IsDone(&my_ip_hls));
 
 
-			XTime_GetTime(&tEnd1);
-			printf("Maxpool : %d , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
-			t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
+			//XTime_GetTime(&tEnd1);
+			//printf("Maxpool : %d , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
+			//t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
 			XAxiDma_Reset(&axiDMA6);
 			while(!XAxiDma_ResetIsDone(&axiDMA6)){}
 
@@ -320,9 +325,9 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 			XAxiDma_Reset(&axiDMA2);
 			while(!XAxiDma_ResetIsDone(&axiDMA2)){}
 			//printf("HW Calculation Complete!(Layer : %d.2)\n",curr_layer);
-			XTime_GetTime(&tEnd1);
-			printf("Layer : %d.2 , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
-			t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
+			//XTime_GetTime(&tEnd1);
+			//printf("Layer : %d.2 , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
+			//t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
 		}
 	}
 
@@ -338,7 +343,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 
 		num_f = calc_f_num(curr_layer);
 
-		XTime_GetTime(&tStart1);
+		//XTime_GetTime(&tStart1);
 
 		XTconv_Set_slaveIn_ch(&tconv_ip, ch_num);
 		XTconv_Set_slaveIn_dim(&tconv_ip, dim);
@@ -378,9 +383,9 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		//printf("Waiting for IP to Terminate . . .\n");
 		while(!XTconv_IsDone(&tconv_ip));
 		//printf("HW Calculation Complete!(Layer : %d)\n",curr_layer);
-		XTime_GetTime(&tEnd1);
-		printf("TConv : %d , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
-		t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
+		//XTime_GetTime(&tEnd1);
+		//printf("TConv : %d , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
+		//t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
 		XAxiDma_Reset(&axiDMA3);
 		while(!XAxiDma_ResetIsDone(&axiDMA3)){}
 		XAxiDma_Reset(&axiDMA4);
@@ -394,7 +399,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		ch_num = num_f;
 		dim = o_dim;
 
-		XTime_GetTime(&tStart1);
+		//XTime_GetTime(&tStart1);
 		/////// CONCAT ////////
 
 		for (int i=0;i<ch_num; i++)
@@ -409,9 +414,9 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 			}
 		}
 
-		XTime_GetTime(&tEnd1);
-		printf("Concat : %d , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
-		t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
+		//XTime_GetTime(&tEnd1);
+		//printf("Concat : %d , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
+		//t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
 		// free curr skip
 		//
 		///////////////////////
@@ -420,7 +425,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 
 
 		//////////////////////// CONV BLOCK ///////////////////////////
-		XTime_GetTime(&tStart1);
+		//XTime_GetTime(&tStart1);
 
 		XConv_Set_slaveIn_ch(&conv_ip, ch_num);
 		XConv_Set_slaveIn_dim(&conv_ip, dim);
@@ -463,11 +468,11 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		XAxiDma_Reset(&axiDMA2);
 		while(!XAxiDma_ResetIsDone(&axiDMA2)){}
 		//printf("HW Calculation Complete!(Layer : %d.1)\n",curr_layer);
-		XTime_GetTime(&tEnd1);
-		printf("Layer : %d.1 , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
+		//XTime_GetTime(&tEnd1);
+		//printf("Layer : %d.1 , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
 		ch_num = num_f;
-		t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
-		XTime_GetTime(&tStart1);
+		//t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
+		//XTime_GetTime(&tStart1);
 
 		XConv_Set_slaveIn_ch(&conv_ip, ch_num);
 		XConv_Set_slaveIn_dim(&conv_ip, dim);
@@ -505,14 +510,14 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		XAxiDma_Reset(&axiDMA2);
 		while(!XAxiDma_ResetIsDone(&axiDMA2)){}
 		//printf("HW Calculation Complete!(Layer : %d.2)\n",curr_layer);
-		XTime_GetTime(&tEnd1);
-		printf("Layer : %d.2 , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
-		t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
+		////XTime_GetTime(&tEnd1);
+		//printf("Layer : %d.2 , Time: %.4f ms.\n",curr_layer,1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000));
+		////t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
 
 	}
 
 
-	XTime_GetTime(&tStart1);
+	////XTime_GetTime(&tStart1);
 	////////// Last(single conv) layer !!!!! ////
 	int curr_layer = 10;
 	num_f = 1;
@@ -535,10 +540,11 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		}
 	}
 
-	XTime_GetTime(&tEnd1);
+	/*
+	//XTime_GetTime(&tEnd1);
 	printf("Last Layer : %d , Time: %.4f ms.\n",curr_layer,1.0*(tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000) );
 
-	t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
+	//t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
 	printf("\nNeural Network took %.6f ms.\n",1.0*t_all);
 	///
 	printf("\n---------------------------------------\nResult:\n\n");
@@ -548,10 +554,12 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 			printf("%f\t",temp1[j*dim + k]);
 		printf("\n");
 	}
+	*/
 
+	Activation_Function(temp1,dim);
+	//normalize_custom(temp1,dim,0);//it changes the conv_out ifself
 
-	//normalize_custom(temp1);//it changes the conv_out ifself
-
-	//float accuracy = Dice_Coef(temp1, label,dim);
-	//printf("\n\nAccuracy: %.2f % \n\n", (accuracy*100));
+	float **labels= images_data->labels;
+	float accuracy = Dice_Coef(temp1, labels[predict_num],dim);
+	printf("\n\nAccuracy: %.2f %% \n\n", (accuracy*100));
 }

@@ -21,11 +21,11 @@
 #include <stdlib.h>
 #include <unistd.h>
 
-float Dice_Coef(float ***logs, float ***target,int dim);
+float Dice_Coef(float *logs, float *target,int dim);
 void concat(struct concat_crop_data_ *);
 void convTransp(struct conv_data_ *);
 void maxpool(struct maxpool_data_ *);
-void Activation_Function(struct act_func_data_ *);
+void Activation_Function(float *,int);//(struct act_func_data_ *);
 void conv(struct conv_data_ *);
 int calc_f_num(int c);
 int calc_ch_num(int,int);
@@ -251,7 +251,7 @@ struct act_func_data_
 	 * Dim: We assume that we have a square image so the height == width == dim
 	 */
 	int code, channels, dim;
-	float ***res, ***Z;
+	float *res, *Z;
 
 };
 
