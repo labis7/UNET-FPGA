@@ -15,7 +15,7 @@ int main() {
 	int ch=4;
 	int dim = 8;
 	//float *img=(float *)malloc(ch*dim*dim*sizeof(float));
-	//float *img=(float *)malloc(ch*dim*dim*sizeof(float)); SIGSERV ERROR DURING BIG DATA TESTING
+	//float *img=(float *)malloc(ch*dim*dim*sizeof(float)); !!! SIGSERV ERROR DURING BIG DATA TESTING !!!
 	float img[ch*dim*dim];
 	for(int c=0; c<ch ; c++)
 		for(int i=0;i<dim;i++)
@@ -60,10 +60,6 @@ int main() {
 
 
 
-	//slaveIn.write(dataIn);
-
-
-
 	my_ip_hls(image,result,dataIn);
 
 
@@ -89,49 +85,6 @@ int main() {
 		printf("\n");
 	}
 
-	/*
-	for(int k = 0 ; k< f_num; k++)
-	{
-		for(int c=0; c<ch ; c++)
-		{
-			for(int i=0;i<3;i++)
-			{
-				for(int j=0;j<3;j++)
-				{
-					//img[c][i][j] = img[c][i][j] +5;
-					printf("%f\t",filt[k][c][i][j]);
-				}
-				printf("\n");
-			}
-			printf("\n");
-		}
-		printf("\n");
-	}
-	*/
-
-/*
-	//if (!masterOut.empty()) {
-	data dataOut ;
-	masterOut.read(dataOut);
-	float ret[ch][dim][dim];
-	memcpy(ret,dataOut.image , ch*dim*dim*sizeof(float)); //WARNING,IF I DO memcpy(tmp,res) first item(0,0) will fail
-	//printf("%d: read data: %u\n",(int)i, (int)dataOut.data);
-	printf("\nAfter Processing, Channels:%d , Res: %dx%d\n",dataOut.ch,dataOut.dim,dataOut.dim);
-	for(int c=0; c<ch ; c++)
-	{
-		for(int i=0;i<dim;i++)
-		{
-			for(int j=0;j<dim;j++)
-			{
-				printf("%f\t",ret[c][i][j]);
-			}
-			printf("\n");
-		}
-		printf("\n");
-	}
-	//printf("\n%d\n",(int)count_out);
-	printf("\n\nNo segmentation Problems\nFinishing . . .");
-	*/
 
 	return 0;
 }

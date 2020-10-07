@@ -1,61 +1,12 @@
 #include <header.h>
 
 
-/*
-void reset_clock_counter() {
-	__asm__ __volatile__("msr PMCR_EL0, %[input]"::[input] "r" (PMCR_PMCCNTR_RESET));
-}
-void enable_clock_counter() {
-	__asm__ __volatile__("msr PMCNTENSET_EL0, %[input]" ::[input] "r" (PMCNTENSET_VAL));
-}
-
-void pmu_init() {
-	enable_clock_counter();
-	reset_clock_counter();
-	//pmu_enable_counting();
-}
-
-
-
-void pmu_enable_counting() {
-	__asm__ __volatile__("msr PMCR_EL0, %[input]"::[input] "r" (PMCR_ENABLE));
-}
-void pmu_disable_counting() {
-	__asm__ __volatile__("msr PMCR_EL0, %[input]"::[input] "r" (PMCR_DISABLE));
-}
-int64_t begin_c, end_c = 0;
-void begin_counting_MPSoC_cycles() {
-	reset_clock_counter();
-	pmu_enable_counting();
-	__asm__ __volatile__("mrs %[output],pmccntr_el0": [output] "=r" (begin_c));
-}
-
-void end_counting_MPSoC_cycles() {
-	//pmu_disable_counting();
-	__asm__ __volatile__("mrs %[output],pmccntr_el0": [output] "=r" (end_c));
-	pmu_disable_counting();
-	printf("Xfer takes %ld processor's cycles (cycles_cnt) \n",
-			end_c - begin_c);
-	printf("Xfer takes %f (us) processor's time\n",
-			(end_c - begin_c) * 0.000833);
-}
-
-
-*/
 
 
 void predict(struct images_data_ *images_data,struct params_ *params)
 {
-
-
-
-
-
-
 	//XTime t_all=0;
 	//XTime tStart1, tEnd1;
-
-
 
 	///////////////////////// PRE-LOAD Data to Buffers /////////////////////////////
 	///////// Laod Parameters  //////////
@@ -79,22 +30,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 	float *temp1 = (float *)malloc(524288*sizeof(float));
 	//float temp1[524288];//(float *)temp1_addr;
 	//float *b = (float *)bias_addr;
-
-
-/*
-	for (int j=0;j<3;j++)
-	{
-		for (int k=0;k<3;k++)
-			printf("%f\t",filters[0][j*3 + k]);
-		printf("\n");
-	}
-*/
-	////////////////////////////////////////////////////////////////////////////////
-
-
-
-
-
+	
 	printf("Choose an Image(number 0-%d) for prediction: ",(images_data->im_num -1));
 	int predict_num;
 	scanf("%d", &predict_num);
@@ -113,26 +49,10 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		for (int j=0;j<dim;j++)
 			for (int k=0;k<dim;k++)
 				temp0[i*dim*dim +j*dim + k] = image[i*dim*dim +j*dim + k];
+	////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-
-
-	/*
-	struct conv_data_ *ptr_conv_data = &conv_data;
-	//struct gn_data_ *ptr_gn_data = &gn_data;
-	struct act_func_data_ *ptr_act_func_data = &act_func_data;
-	struct maxpool_data_ *ptr_maxpool_data = &maxpool_data;
-	struct concat_crop_data_ *ptr_concat_crop_data =&concat_crop_data;
-
-
-	float ***conv_out;
-	float ****conv_arr = (float ****)malloc(5*sizeof(float ***));//save each conv#_2 so we can concat later
-	*/
-
-
-	float **conv_arr = (float **)malloc(4*sizeof(float *));//save each conv#_2 so we can concat later
+	float **conv_arr = (float **)malloc(4*sizeof(float *));//allocate space where each conv#_2 is stored, so we can concat later with the corresponding Deconvolution part
 
 
 	int num_f;
@@ -146,6 +66,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		//begin_counting_MPSoC_cycles();
 		//XTime_GetTime(&tStart1);
 
+		//basic variable setup via AXI-Lite
 		XConv_Set_slaveIn_ch(&conv_ip, ch_num);
 		XConv_Set_slaveIn_dim(&conv_ip, dim);
 		XConv_Set_slaveIn_f_num(&conv_ip, num_f);
@@ -158,10 +79,11 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 
 		//Flush the cache of the buffers
 		//printf("Flushing Cache\n");
-		Xil_DCacheFlushRange((UINTPTR)temp0, ch_num*dim*dim*sizeof(float));
+		Xil_DCacheFlushRange((UINTPTR)temp0, ch_num*dim*dim*sizeof(float)); 
 		Xil_DCacheFlushRange((UINTPTR)filters[(curr_layer-1)*2], num_f*ch_num*9*sizeof(float));
 		Xil_DCacheFlushRange((UINTPTR)bias[(curr_layer-1)*2], num_f*sizeof(float));
 		Xil_DCacheFlushRange((UINTPTR)temp1, o_ch*o_dim*o_dim*sizeof(float));
+		
 
 		//printf("Sending Data to IP core slave\n");
 		XAxiDma_SimpleTransfer(&axiDMA0, (UINTPTR)temp0, ch_num*dim*dim*sizeof(float), XAXIDMA_DMA_TO_DEVICE);
@@ -197,15 +119,16 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		//end_counting_MPSoC_cycles();
 		ch_num = num_f;
 		//t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
+		
 		/////////////////////////////////////////////////////////////
-		//init_dma();
+		
+		//Reset DMA so they are ready for the next process
 		XAxiDma_Reset(&axiDMA0);
 		while(!XAxiDma_ResetIsDone(&axiDMA0)){}
 		XAxiDma_Reset(&axiDMA1);
 		while(!XAxiDma_ResetIsDone(&axiDMA1)){}
 		XAxiDma_Reset(&axiDMA2);
 		while(!XAxiDma_ResetIsDone(&axiDMA2)){}
-		//setupIPs();
 
 
 		//num_f = calc_f_num(curr_layer);
@@ -213,7 +136,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 
 		//XTime_GetTime(&tStart1);
 
-
+		//basic variable setup via AXI-Lite
 		XConv_Set_slaveIn_ch(&conv_ip, ch_num);
 		XConv_Set_slaveIn_dim(&conv_ip, dim);
 		XConv_Set_slaveIn_f_num(&conv_ip, num_f);
@@ -230,8 +153,6 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		if(curr_layer != 5)
 		{
 			Xil_DCacheFlushRange((UINTPTR)skip, o_ch*o_dim*o_dim*sizeof(float));
-
-
 
 
 			//printf("Sending Data to IP core slave\n");
@@ -299,8 +220,6 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 			Xil_DCacheFlushRange((UINTPTR)temp0, o_ch*o_dim*o_dim*sizeof(float));
 
 
-
-
 			//printf("Sending Data to IP core slave\n");
 			XAxiDma_SimpleTransfer(&axiDMA0, (UINTPTR)temp1, ch_num*dim*dim*sizeof(float), XAXIDMA_DMA_TO_DEVICE);
 			//printf("Sending Image . . .\n");
@@ -331,10 +250,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		}
 	}
 
-
-	/*
-	return;
-	*/
+	
 	////////////////  Transposed convolution  //////////////////////////
 	//conv_out is the input image
 
@@ -345,6 +261,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 
 		//XTime_GetTime(&tStart1);
 
+		//basic variable setup via AXI-Lite
 		XTconv_Set_slaveIn_ch(&tconv_ip, ch_num);
 		XTconv_Set_slaveIn_dim(&tconv_ip, dim);
 		XTconv_Set_slaveIn_f_num(&tconv_ip, num_f);
@@ -352,7 +269,8 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 
 		int o_dim = dim*2;
 		int o_ch = num_f;
-
+		
+		//flush cache
 		Xil_DCacheFlushRange((UINTPTR)temp0, ch_num*dim*dim*sizeof(float));
 		Xil_DCacheFlushRange((UINTPTR)f_dc[curr_layer-6], num_f*ch_num*4*sizeof(float));
 		Xil_DCacheFlushRange((UINTPTR)b_dc[curr_layer-6], num_f*sizeof(float));
@@ -400,8 +318,8 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		dim = o_dim;
 
 		//XTime_GetTime(&tStart1);
-		/////// CONCAT ////////
-
+		
+		/////// CONCAT(Software - ARM) ////////
 		for (int i=0;i<ch_num; i++)
 		{
 			for (int j=0;j<dim;j++)
@@ -424,9 +342,10 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		ch_num = ch_num*2;
 
 
-		//////////////////////// CONV BLOCK ///////////////////////////
+		//////////////////////// CONV BLOCK(same as the encoder part) ///////////////////////////
 		//XTime_GetTime(&tStart1);
 
+		//basic variable setup via AXI-Lite
 		XConv_Set_slaveIn_ch(&conv_ip, ch_num);
 		XConv_Set_slaveIn_dim(&conv_ip, dim);
 		XConv_Set_slaveIn_f_num(&conv_ip, num_f);
@@ -474,6 +393,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 		//t_all+= 1.0* (tEnd1 - tStart1) / (COUNTS_PER_SECOND/1000);
 		//XTime_GetTime(&tStart1);
 
+		//basic variable setup via AXI-Lite
 		XConv_Set_slaveIn_ch(&conv_ip, ch_num);
 		XConv_Set_slaveIn_dim(&conv_ip, dim);
 		XConv_Set_slaveIn_f_num(&conv_ip, num_f);
@@ -518,7 +438,8 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 
 
 	////XTime_GetTime(&tStart1);
-	////////// Last(single conv) layer !!!!! ////
+	
+	////////// Last(single convulution 1x1) layer !!!!! ////
 	int curr_layer = 10;
 	num_f = 1;
 	int o_dim = dim;
@@ -526,6 +447,7 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 	float bias_t = bias[offset][0];
 	float sum;
 
+	//Software(ARM) Convolution
 	for(int x=0; x<o_dim; x++)
 	{
 		for(int y=0; y<o_dim; y++)
@@ -556,8 +478,8 @@ void predict(struct images_data_ *images_data,struct params_ *params)
 	}
 	*/
 
-	Activation_Function(temp1,dim);
-	//normalize_custom(temp1,dim,0);//it changes the conv_out ifself
+	Activation_Function(temp1,dim);//Sigmoid Activation Function!
+	//normalize_custom(temp1,dim,0);//it changes the conv_out itself - smart accuracy increase tool
 
 	float **labels= images_data->labels;
 	float accuracy = Dice_Coef(temp1, labels[predict_num],dim);
