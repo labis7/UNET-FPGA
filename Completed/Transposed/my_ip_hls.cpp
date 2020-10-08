@@ -1,12 +1,12 @@
 #include "my_ip_hls.hpp"
 #include "ap_int.h"
 
-static float img[131072]; //32x64x64
-static float res_0[128];  //LB1
-static float res_1[128];  //LB2
+static float img[524288]; //32x128x128
+static float res_0[256];  //LB1
+static float res_1[256];  //LB2
 static float filt[256*F_DIM*F_DIM];//all channels per filter reading
 
-void Tconv(stream<float> &image, stream<float> &filter, stream<float> &bias, stream<float> &result,data &slaveIn, ap_uint<1> &TLAST) {
+void Tconv(stream<float> &image, stream<float> &filter, stream<float> &bias, stream<float> &result,data &slaveIn) {
 
 //AXI-Lite
 #pragma HLS INTERFACE s_axilite port=slaveIn bundle=CRTL_BUS
@@ -24,7 +24,6 @@ void Tconv(stream<float> &image, stream<float> &filter, stream<float> &bias, str
 #pragma HLS ARRAY_PARTITION variable=img cyclic factor=2 dim=1
 
 
-	TLAST = (ap_int<1>)0;
 	data dataOut;
 	int dim,ch,f_num,mode;
 	//reading axi lite
@@ -157,9 +156,6 @@ void Tconv(stream<float> &image, stream<float> &filter, stream<float> &bias, str
 			{
 #pragma HLS pipeline
 #pragma HLS loop_tripcount min=128 max=128
-
-				if(x == (dim-1)&&(i == (f_num-1))&&(j==(o_dim-1)))
-					TLAST = (ap_int<1>)1;
 				result.write(res_1[j]);
 			}
 

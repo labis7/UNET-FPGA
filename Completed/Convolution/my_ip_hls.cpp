@@ -1,10 +1,10 @@
 #include "my_ip_hls.hpp"
-static float img[524288]; // 32x128x128 : max loca image 
-static float img_t0[130]; // Line Buffer(LB1) - Including zero padding 
-static float img_t1[130]; // Line Buffer(LB2) - Including zero padding 
-static float img_t2[130]; // Line Buffer(LB3) - Including zero padding 
+//static float img[524288]; // 32x128x128 : max local image
+static float img_t0[258]; // Line Buffer(LB1) - Including zero padding
+static float img_t1[258]; // Line Buffer(LB2) - Including zero padding
+static float img_t2[258]; // Line Buffer(LB3) - Including zero padding
 static float filt[F_DIM*F_DIM]; // Filter locally saved
-static float res[128][128];     // temporary result buffer(1 output channel)
+static float res[258][258];     // temporary result buffer(1 output channel)
 
 
 
@@ -24,7 +24,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 #pragma HLS ARRAY_PARTITION variable=img_t0 cyclic factor=2 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t1 cyclic factor=2 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t2 cyclic factor=2 dim=1
-#pragma HLS ARRAY_PARTITION variable=img cyclic factor=2 dim=1
+//#pragma HLS ARRAY_PARTITION variable=img cyclic factor=2 dim=1
 
 
 	data dataOut;
@@ -35,6 +35,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 	f_num = slaveIn.f_num;
 
 	//Load the whole input image
+	/*
 	for(int c=0; c<ch ; c++)
 #pragma HLS loop_tripcount min=256 max=256
 		for(int i=0;i<dim;i++)
@@ -42,7 +43,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 			for(int j=0;j<dim;j++)
 #pragma HLS loop_tripcount min=16 max=16
 				img[c*dim*dim + i*dim+j]=image.read();
-
+*/
 
 
 				
@@ -62,7 +63,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 #pragma HLS inline
 	//init with zeros 1st row of linebuffer plus the 1st and last element(padding) for each row of  the linebuffer
 	for(int y=0; y<(dim_t); y++)
-#pragma HLS loop_tripcount min=18 max=18
+#pragma HLS loop_tripcount min=130 max=130
 #pragma HLS pipeline
 		img_t0[y] = 0;
 	img_t2[0]=0;
@@ -78,15 +79,15 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 	{
 #pragma HLS pipeline
 		counter=0;
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=16 max=16
 		float bias_t = bias.read(); //read bias - one per filter
 		//initiate result buffer with bias
 		for(int x=0; x<o_dim; x++)
 		{
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=16 max=16
+#pragma HLS loop_tripcount min=128 max=128
 			for(int y=0; y<o_dim; y++)
-#pragma HLS loop_tripcount min=16 max=16
+#pragma HLS loop_tripcount min=128 max=128
 				res[x][y] = bias_t;
 		}
 		//seeking on the temp image's sub array that we want to mult item wise and then add them for the (x,y) result
@@ -94,13 +95,13 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 		for(int j=0; j < ch ; j++) //input channel loop
 		{
 
-#pragma HLS loop_tripcount min=256 max=256
+#pragma HLS loop_tripcount min=32 max=32
 
 			//load the 2nd row of the image,assuming that the previous iteration completed the init
 			for(int z = 1 ; z<dim_t-1; z++)
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=16 max=16
-				img_t1[z] =img[counter++];
+#pragma HLS loop_tripcount min=128 max=128
+				img_t1[z] = image.read();//img[counter++];
 
 			//load the corresponding filter for this input channel
 			for(int z =0 ; z<9 ;z++)
@@ -112,17 +113,17 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 			for(int x=0; x<o_dim-1; x++)//last iteration is skipped for now ...
 			{
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=16 max=16
+#pragma HLS loop_tripcount min=128 max=128
 				for(int z = 1 ; z<dim_t-1; z++)
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=16 max=16
-					img_t2[z] = img[counter++];//load the new line buffer(3rd)
+#pragma HLS loop_tripcount min=128 max=128
+					img_t2[z] = image.read();//img[counter++];//load the new line buffer(3rd)
 				
 				//Execute the actual convolution, loop unrolled factor=2
 				for(int y=0; y<o_dim; y+=2)
 				{
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=8 max=8
+#pragma HLS loop_tripcount min=64 max=64
 					//tree-structure calculation
 					float reg0 = img_t0[y]*filt[0];
 					float reg1 = img_t0[y+1]*filt[1];
@@ -166,7 +167,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				//Unrolled 2 times
 				for(int y=1; y<(dim_t-1); y+=2)
 				{
-#pragma HLS loop_tripcount min=16 max=16
+#pragma HLS loop_tripcount min=128 max=128
 #pragma HLS pipeline
 					img_t0[y] = img_t1[y];//LB2-->LB1
 					img_t1[y] = img_t2[y];//LB3-->LB2
@@ -176,13 +177,13 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 			}
 			//LAST ITERATION, the shift ups for 1st and 2nd rows are completed above
 			for(int y=1; y<(dim_t-1); y++)
-#pragma HLS loop_tripcount min=16 max=16
+#pragma HLS loop_tripcount min=128 max=128
 #pragma HLS pipeline
 				img_t2[y] = 0;//the last line of the input image must consists of zeros(zero padding==1)
 
 			for(int y=0; y<o_dim; y+=2)
 			{
-#pragma HLS loop_tripcount min=8 max=8
+#pragma HLS loop_tripcount min=64 max=64
 #pragma HLS pipeline
 
 				float reg0 = img_t0[y]*filt[0];
@@ -223,18 +224,18 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 
 			}
 			for(int y=1; y<(dim_t-1); y++)
-#pragma HLS loop_tripcount min=16 max=16
+#pragma HLS loop_tripcount min=128 max=128
 #pragma HLS pipeline
 				img_t0[y] = 0;
 		}//end of channel loop
 		
 		//Streaming out the result per output channel == filter
 		for(int x=0; x<o_dim; x++){
-#pragma HLS loop_tripcount min=16 max=16
+#pragma HLS loop_tripcount min=128 max=128
 #pragma HLS pipeline
 			for(int y=0; y<o_dim; y++)
 			{
-#pragma HLS loop_tripcount min=16 max=16
+#pragma HLS loop_tripcount min=128 max=128
 				float tmp=res[x][y];
 				if(tmp<=0) 			// Integraded ReLu activation function
 					result.write(0);

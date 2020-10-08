@@ -1,7 +1,7 @@
 #include "my_ip_hls.hpp"
 
-static float img_t0[128]; //Max resolution supported
-static float img_t1[128]; //
+static float img_t0[256]; //Max resolution supported
+static float img_t1[256]; //
 
 //static float b[10];
 
@@ -39,19 +39,19 @@ void my_ip_hls(stream<float> &image,stream<float> &result,data &slaveIn) {
 		//For every output row, load a pair of input image lines into 2 line buffers
 		for(int x=0; x<o_dim; x++)
 		{
-#pragma HLS loop_tripcount min=64 max=64
+#pragma HLS loop_tripcount min=128 max=128
 			for (int z=0; z<dim; z++)
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=256 max=256
 				image.read(img_t0[z]); //LB1
 			for (int z=0; z<dim; z++)
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=128 max=128
+#pragma HLS loop_tripcount min=256 max=256
 				image.read(img_t1[z]); //LB2
 			for (int y = 0; y<o_dim; y++)
 			{
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=64 max=64
+#pragma HLS loop_tripcount min=128 max=128
 					
 				//Comparators - Part
 				if(img_t0[s*y]> max)

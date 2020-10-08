@@ -13,12 +13,12 @@ using namespace hls;
 int main() {
 
 
-	int ch=32;
-	int dim = 32;
+	int ch=4;
+	int dim = 8;
 	float *img=(float *)malloc(ch*dim*dim*sizeof(float));
 
 	int f_num;
-	f_num = 16;
+	f_num = 2;
 	float *filt = (float *)malloc(f_num*ch*F_DIM*F_DIM*sizeof(float));
 	float b[f_num];
 	int counter=1;
@@ -88,6 +88,17 @@ int main() {
 		}
 
 
+		for(int c=0; c<ch ; c++)
+		{
+			for(int i=0;i<dim;i++)
+			{
+				for(int j=0;j<dim;j++)
+				{
+					image.write(img[c*dim*dim+i*dim+j]);
+				}
+			}
+		}
+
 		bias.write(0);
 	}
 	/*
@@ -102,16 +113,8 @@ int main() {
 		}
 	}
 	*/
-	for(int c=0; c<ch ; c++)
-	{
-		for(int i=0;i<dim;i++)
-		{
-			for(int j=0;j<dim;j++)
-			{
-				image.write(img[c*dim*dim+i*dim+j]);
-			}
-		}
-	}
+
+
 
 
 
