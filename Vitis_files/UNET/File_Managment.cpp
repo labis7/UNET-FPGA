@@ -14,22 +14,26 @@ void load_images(struct images_data_ *images_data)
 	for (int i = 0; i<im_num ; i++)
 		image_names[i]=(char *)malloc(20*sizeof(char));
 
+	
+	
+	
 	FRESULT rc;
 
 	DIR dir;
 	//struct dirent *ent;
 	FILINFO ent;
-	f_opendir (&dir,"labis/images");
+	
+	f_opendir (&dir,"labis/images");//edit path!
 	if ( &dir != NULL ) {
 		printf("\nLoading Images . . .");
 	  // print all the files and directories within directory //
 		//int i=0;
 		//int count=0;
 		f_readdir (&dir, &ent);
-		for(int i=0; i<im_num; i++)
+		for(int i=0; i<im_num; i++) 
 		{
 			//ent->
-			strcpy(image_names[i], ent.fname);
+			strcpy(image_names[i], ent.fname); //save image names
 			printf("\n%d) %s\n",i,image_names[i]);
 
 			f_readdir(&dir, &ent);
@@ -41,13 +45,13 @@ void load_images(struct images_data_ *images_data)
 	int width,height,maxval;
 
 	FIL fd;
-	float **image = (float**)malloc(im_num*sizeof(float *));
+	float **image = (float**)malloc(im_num*sizeof(float *)); // create a buffer for the input Images
 
-	for(int im=0; im<im_num; im++)
+	for(int im=0; im<im_num; im++) //Per image for loop(loading)
 	{
 	//int im =0;
 		char path_name[200];
-		snprintf(path_name,sizeof(path_name),"labis/images/%s", image_names[im]);
+		snprintf(path_name,sizeof(path_name),"labis/images/%s", image_names[im]); // edit path
 
 		rc =f_open(&fd, path_name, FA_READ);
 		if (rc) {
@@ -58,7 +62,7 @@ void load_images(struct images_data_ *images_data)
 		char line[5];
 		f_gets(line, sizeof(line), &fd);
 
-		if (strcmp(line, "P5\n") != 0) {
+		if (strcmp(line, "P5\n") != 0) {  // check for Iamge Format(must be .PGM)
 			printf("Image is not in PGM(P5) format!\n");
 			f_close(&fd);
 			exit(1);
@@ -66,13 +70,13 @@ void load_images(struct images_data_ *images_data)
 		char line1[20];
 		f_gets(line1, sizeof(line1), &fd);
 
-		sscanf(line1,"%d %d\n",&height,&width);
+		sscanf(line1,"%d %d\n",&height,&width);  // read height, width of the image (2nd file line)
 
 		char line2[10];
 
 		f_gets(line2, sizeof(line2), &fd);
 
-		sscanf(line2,"%d\n",&maxval);
+		sscanf(line2,"%d\n",&maxval); //read 3rd file line --> max pixel value (meaning is 16 or 8 bit pixel size)
 
 		//f_close(fd);
 		//fflush(stdout);
@@ -81,19 +85,21 @@ void load_images(struct images_data_ *images_data)
 
 		//////////////////////////////////////////
 		float *img = (float *)malloc(dim*dim*sizeof(float));
-	    if (maxval == 65535)
+	    if (maxval == 65535)// 16-bit pixels
 	    {
 	    	int ch_num=1,dim=height;
-			uint16_t *rbuffer = (uint16_t *)malloc(dim*dim*sizeof(uint16_t));
+			uint16_t *rbuffer = (uint16_t *)malloc(dim*dim*sizeof(uint16_t)); // allocate space
 			UINT br;
-			f_read(&fd, (void *)rbuffer,(width * height)*sizeof(uint16_t), &br);
-			if (br != (width * height)*sizeof(uint16_t)) {
+			f_read(&fd, (void *)rbuffer,(width * height)*sizeof(uint16_t), &br); // read the next width*height*pixelSize values which is the complete image
+			if (br != (width * height)*sizeof(uint16_t)) {//check if the whole image is succesfully read.
 				printf("Error reading pixel values!\n");
 				f_close(&fd);
 				exit(1);
 			}
 			f_close(&fd);
 			int offset=0;
+			
+			//Saving Image
 			for(int i = 0; i<ch_num; i++ )
 			{
 				for (int x=0; x<height; x++)
@@ -108,8 +114,8 @@ void load_images(struct images_data_ *images_data)
 				}
 				//printf("\n");
 			}
-			free(rbuffer);
-			image[im] = img;
+			free(rbuffer);//free buffer resources
+			image[im] = img; // save image to the image list 
 	    }
 
 	    else //means its 8-bit
@@ -144,6 +150,7 @@ void load_images(struct images_data_ *images_data)
 	    }
 	}
 
+	// store back in the structure the list of images
     images_data->images = image;
 	printf("Done!\n");
 
@@ -151,6 +158,7 @@ void load_images(struct images_data_ *images_data)
 
 
 
+// Exactly the same way for labels
 void load_labels(struct images_data_ *images_data)
 {
 
@@ -284,12 +292,15 @@ void load_labels(struct images_data_ *images_data)
     printf("Done!\n");
 }
 
+
+
+//convolutions filters,bias, and transposed filters, bias loading
 void load_params(struct params_ *params)
 {
 	// Unpacking //
 
 	//int batch =params->gn_batch; //default:2
-	int layers = params->layers; //default:10
+	int layers = params->layers; //default:10   !!!
 	//int f_num = params->num_f;
 	/////////////////
 	float **filters = (float **)malloc((layers*2*2-1)*sizeof(float *));
@@ -311,8 +322,8 @@ void load_params(struct params_ *params)
 	{
 		if(i!=10)
 		{
-			sum += calc_f_num(i)*calc_ch_num(i,1)*3*3;
-			sum += calc_f_num(i)*calc_ch_num(i,2)*3*3;
+			sum += calc_f_num(i)*calc_ch_num(i,1)*3*3; // calculation of the overall filter size elements (1st part of the convolution block)
+			sum += calc_f_num(i)*calc_ch_num(i,2)*3*3; // calculation of the overall filter size elements (2nd part of the convolution block)
 		}
 		else
 		{
@@ -322,35 +333,38 @@ void load_params(struct params_ *params)
 
 	uint32_t *rbuffer;
 	FIL ptr;
-	f_open(&ptr,"labis/weights.bin", FA_READ);
+	f_open(&ptr,"labis/weights.bin", FA_READ); //edit path
 	if(&ptr == NULL)
 	{
 		printf("Couldnt load directory!\nExiting . . . ");
 		exit(1);
 	}
 	printf("Loading Parameters . . .");
-	rbuffer = (uint32_t *)malloc(sum*sizeof(int32_t));
+	rbuffer = (uint32_t *)malloc(sum*sizeof(int32_t)); // create buffer for 32 bit weights(filters , bias)
 	UINT br;
-	f_read(&ptr, (void *)rbuffer, sum*sizeof(uint32_t), &br);
+	f_read(&ptr, (void *)rbuffer, sum*sizeof(uint32_t), &br);// read all the filters(they are saved first in the byte file -- read Python encoding tool)
 	int pos=0;
 	for (int i=1;i<=layers; i++)
 	{
 		if(i!=10)
 		{
+			////////////////////////// 1st part of each Convolution Block  ////////////////////////////
 			f_num = calc_f_num(i);
 			ch_num = calc_ch_num(i,1);
-			float *f = (float*)malloc(9*calc_f_num(i)*calc_ch_num(i,1)*sizeof(float));//make_4darray(calc_f_num(i), calc_ch_num(i,1), 3);
+			float *f = (float*)malloc(9*calc_f_num(i)*calc_ch_num(i,1)*sizeof(float)); //create space for the overall number of filter pointers(create the list of filters)
 			for(int k=0; k<f_num; k++)
 				for(int j=0; j< ch_num; j++)
 					for(int x=0; x<dim; x++)
 						for (int y=0; y<dim; y++)
 						{
-							f[k*ch_num*dim*dim+ j*dim*dim+x*dim+y] = *((float *)(rbuffer+offset));
+							f[k*ch_num*dim*dim+ j*dim*dim+x*dim+y] = *((float *)(rbuffer+offset)); // convert and save each weight as a float(32-bit)
 							offset++;
 						}
 			pos = (i-1)*2;
 			filters[pos]=f;
-
+			///////////////////////////////////////////////////////////////////////////////////////////
+			
+			////////////////////////// 2nd part of each Convolution Block  ////////////////////////////
 			//f_num = calc_f_num(i);
 			ch_num = calc_ch_num(i,2);
 			//f = make_4darray(f_num, ch_num, 3);
@@ -365,6 +379,7 @@ void load_params(struct params_ *params)
 						}
 			pos += 1;
 			filters[pos]=f;
+			///////////////////////////////////////////////////////////////////////////////////////////
 		}
 		else//i == 10 --> last 1x1 conv
 		{
@@ -384,6 +399,8 @@ void load_params(struct params_ *params)
 		}
 	}
 	free(rbuffer);
+	
+	
 	/////////////////// BIAS ///////////////////
 	////////////////////////////////////////////
 	sum=1;//already last layer out is counted, (just 1 scalar bias_out)
@@ -396,8 +413,9 @@ void load_params(struct params_ *params)
 	f_read(&ptr, (void *)rbuffer, sum*sizeof(uint32_t), &br);
 	pos=0;
 	offset=0;
-	for (int i=1;i<=(layers-1); i++) //NOT THE LAST LAYER!!!
+	for (int i=1;i<=(layers-1); i++) //LAST LAYER NOT INCLUDED!!!
 	{
+		////////////////////////// 1st part of each Convolution Block  ////////////////////////////
 		f_num = calc_f_num(i);
 		ch_num = calc_ch_num(i,1);
 		float *b = (float *)malloc(f_num*sizeof(float));
@@ -408,7 +426,9 @@ void load_params(struct params_ *params)
 		}
 		pos = (i-1)*2;
 		bias[pos]=b;
-
+		///////////////////////////////////////////////////////////////////////////////////////////
+		
+		////////////////////////// 2nd part of each Convolution Block  ////////////////////////////
 		//f_num = calc_f_num(i);
 		ch_num = calc_ch_num(i,2);
 		b =  (float *)malloc(f_num*sizeof(float));
@@ -419,6 +439,7 @@ void load_params(struct params_ *params)
 		}
 		pos += 1;
 		bias[pos]=b;
+		///////////////////////////////////////////////////////////////////////////////////////////
 	}
 	//last layer of bias
 	f_num = calc_f_num(10);
@@ -430,6 +451,7 @@ void load_params(struct params_ *params)
 	}
 	bias[18]=b;
 	free(rbuffer);
+	
 	///////////////////////////// F_DC ///////////////////////////////
 	//////////////////////////////////////////////////////////////////
 
@@ -459,9 +481,9 @@ void load_params(struct params_ *params)
 		pos++;
 	}
 	free(rbuffer);
+	
 	///////////////////////////// B_DC ///////////////////////////////
 	//////////////////////////////////////////////////////////////////
-
 	sum=0;
 	offset=0;
 	sum = 128+64+32+16;
@@ -482,6 +504,8 @@ void load_params(struct params_ *params)
 		pos++;
 	}
 
+	
+	//save parameters back to data structure and de-allocate resources
 	params->b_dc=b_dc;
 	params->f_dc = f_dc;
 	params->bias=bias;

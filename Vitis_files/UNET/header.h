@@ -6,17 +6,17 @@
  */
 /////// INCLUDES ///////
 #include <stdint.h>
-#include<stdio.h>
-#include<xmy_ip_hls_hw.h>
-#include<xmy_ip_hls.h>
-#include<xconv.h>
-#include<xconv_hw.h>
-#include<xtconv.h>
-#include<xtconv_hw.h>
-#include<xparameters.h>
-#include<xaxidma.h>
-#include<math.h>
-#include<ff.h>
+#include <stdio.h>
+#include <xmy_ip_hls_hw.h>
+#include <xmy_ip_hls.h>
+#include <xconv.h>
+#include <xconv_hw.h>
+#include <xtconv.h>
+#include <xtconv_hw.h>
+#include <xparameters.h>
+#include <xaxidma.h>
+#include <math.h>
+#include <ff.h>
 #include "xtime_l.h"
 #include <stdlib.h>
 #include <unistd.h>
@@ -40,8 +40,10 @@ void load_labels(struct images_data_ *);
 void predict(struct images_data_ *images_data,struct params_ *params);
 void normalize_custom(float *,int,int);
 
+
+//   Hardware configuration and instantiation variables //
 ////////////////////////
-//////  Maxpool ///////
+//////  Maxpool Accelerators + DMA///////
 extern XMy_ip_hls my_ip_hls;
 extern XMy_ip_hls_Config *my_ip_hls_cfg;
 
@@ -49,8 +51,7 @@ extern XAxiDma axiDMA6;
 extern XAxiDma_Config *axiDMA6_cfg;
 ///////////////////////
 
-
-//////  Conv ///////
+//////  Convolution Accelerator + DMA///////
 extern XConv conv_ip;
 extern XConv_Config *conv_ip_cfg;
 
@@ -64,7 +65,7 @@ extern XAxiDma axiDMA2;
 extern XAxiDma_Config *axiDMA2_cfg;
 ///////////////////////
 
-//////  Tconv ///////
+//////  Transposed Convolution Acc + DMA ///////
 extern XTconv tconv_ip;
 extern XTconv_Config *tconv_ip_cfg;
 
@@ -125,6 +126,44 @@ float ***make_3darray(int channels,int dim);
 #define PMCR_PMCCNTR_RESET  				(0x1 << PMU_PMCR_C)
 #define PMCNTENSET_VAL 						(0x1 << PMU_PMCNTENSET_ENABLE_CLOCK_COUNT)
 
+
+void reset_clock_counter() {
+	__asm__ __volatile__("msr PMCR_EL0, %[input]"::[input] "r" (PMCR_PMCCNTR_RESET));
+}
+void enable_clock_counter() {
+	__asm__ __volatile__("msr PMCNTENSET_EL0, %[input]" ::[input] "r" (PMCNTENSET_VAL));
+}
+
+void pmu_init() {
+	enable_clock_counter();
+	reset_clock_counter();
+	//pmu_enable_counting();
+}
+
+
+
+void pmu_enable_counting() {
+	__asm__ __volatile__("msr PMCR_EL0, %[input]"::[input] "r" (PMCR_ENABLE));
+}
+void pmu_disable_counting() {
+	__asm__ __volatile__("msr PMCR_EL0, %[input]"::[input] "r" (PMCR_DISABLE));
+}
+int64_t begin_c, end_c = 0;
+void begin_counting_MPSoC_cycles() {
+	reset_clock_counter();
+	pmu_enable_counting();
+	__asm__ __volatile__("mrs %[output],pmccntr_el0": [output] "=r" (begin_c));
+}
+
+void end_counting_MPSoC_cycles() {
+	//pmu_disable_counting();
+	__asm__ __volatile__("mrs %[output],pmccntr_el0": [output] "=r" (end_c));
+	pmu_disable_counting();
+	printf("Xfer takes %ld processor's cycles (cycles_cnt) \n",
+			end_c - begin_c);
+	printf("Xfer takes %f (us) processor's time\n",
+			(end_c - begin_c) * 0.000833);
+}
 */
 struct conv_data_
 {
@@ -137,8 +176,8 @@ struct conv_data_
 	 * a thing, we need to add a zero padding around the conv_in with p=1.((dim-3+2*p)/1 + 1) , s=1,f=3. 2) "Normal": Means that
 	 * the result will have the dim of a normal-basic convolution: (dim-3)/1 + 1 = o_dim
 	 *
-	 * ----------Convolution_Backward ------------
-	 *
+	 * ----------Convolution_Backward (Not supported, yet...)------------
+	 * 
 	 *
 	 *
 	 */
@@ -255,6 +294,7 @@ struct act_func_data_
 
 };
 
+/*
 struct GP_arrays_ //General purpose arrays
 {
 	float *dim1;
@@ -263,6 +303,7 @@ struct GP_arrays_ //General purpose arrays
 	float ****dim4;
 	float *****dim5;
 };
+*/
 
 struct norm_data_
 {

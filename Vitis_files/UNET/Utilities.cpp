@@ -2,8 +2,8 @@
  ============================================================================
  Name        : Utilities.c
  Author      : Labiz
- Version     : V0.5
- Copyright   : Your copyright notice
+ Version     : V0.85
+ Copyright   : -
  Description : Utilities of U-Net, including initializations and important 3d,4d matrix building tools
  ============================================================================
  */
@@ -61,7 +61,7 @@ float Random_Normal(int loc, float scale)
 }
 
 
-void Initialize_Parameters(struct init_param_ *ptr_init_param)
+void Initialize_Parameters(struct init_param_ *ptr_init_param)                     // TRAINING/TESTING ONLY //
 {
 	int layers = ptr_init_param->layers;//number of layers(just the encoder-downsampling number)
 	int num_f = ptr_init_param->num_f;  //initial number of filters(they will be doubled for each layer)
@@ -194,7 +194,7 @@ void Initialize_Parameters(struct init_param_ *ptr_init_param)
 	ptr_init_param->b_dc = b_dc;
 }
 
-void Activation_Function(float *Z,int dim)//(struct act_func_data_ *act_func_data)
+void Activation_Function(float *Z,int dim)//(struct act_func_data_ *act_func_data) //only Software Sigmoid Enabled
 {
 	//float *Z;
 	//int code, channels, dim;
@@ -210,7 +210,7 @@ void Activation_Function(float *Z,int dim)//(struct act_func_data_ *act_func_dat
 	//{
 	for (int j=0; j<dim; j++)
 		for (int k=0; k<dim; k++)
-			Z[j*dim + k] = (1/(1 + exp(- Z[j*dim+k]))); //Thats the original sigmoid!
+			Z[j*dim + k] = (1/(1 + exp(- Z[j*dim+k]))); //Sigmoid
 	//}
 	/*
 	else if(code == 2)//Sigmoid backpropagation function
@@ -457,7 +457,7 @@ int calc_ch_num(int layer,int tuple)
 
 
 
-
+ /////////////////////////////////// DMAs Initialization /////////////////////////////////////////
 void init_dma(){
 
 	//initialize AxiDMA core
@@ -634,6 +634,9 @@ void setupIPs()
 
 }
 
+
+
+
 int main(void) {
 	//time_t t;
 	//srand((unsigned) time(&t));
@@ -656,6 +659,7 @@ int main(void) {
 	}
 ///////////////////////////////////////////////////////////////////////
 
+	//data loading
 	struct images_data_ *ptr_images_data,images_data;
 	ptr_images_data = &images_data;
 	ptr_images_data->im_num=4;
@@ -679,7 +683,7 @@ int main(void) {
 	}
 	//////////////////////////////////////
 
-	while(1)
+	while(1)// MENU
 	{
 		int answer=1;
 		fflush(stdin);
@@ -733,39 +737,3 @@ int main(void) {
 	*/
 	return EXIT_SUCCESS;
 }
-/*
-float *****testff(float ***t){
-	int channels =2;
-	int dim=5;
-	for (int i=0;i<channels;i++)
-	{
-		for (int j=0;j<dim;j++)
-		{
-			for (int k=0;k<dim;k++)
-			{
-				//image1[i][j][k] = (i+1)*(j*2+k*1) +1;
-				printf("%f\t", t[i][j][k]);//*(*(*(pA +i) + j) +k));
-			}
-			printf("\n");
-		}
-		printf("\n");
-	}
-
-	return 0;
-
-	float ****t2 = make_4darray(1,2,3);
-	for (int i=0;i<1;i++)
-		for (int j=0;j<2;j++)
-			for (int k=0;k<3;k++){
-				for(int y=0;y<3;y++)
-				{
-					t[i][j][k][y]=i+j+y+k;
-					t2[i][j][k][y]=2*i+2*j+2*y+2*k;
-				}
-			}
-	float *****t_array = (float *****)malloc(2*sizeof(float ****));
-	t_array[0] = t;
-	t_array[1] = t2;
-	return t_array;
-
-}*/

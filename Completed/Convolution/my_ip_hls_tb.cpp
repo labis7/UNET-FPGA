@@ -112,7 +112,7 @@ int main() {
 			}
 		}
 	}
-	//slaveIn.write(dataIn);
+
 
 
 
@@ -158,28 +158,5 @@ int main() {
 	}
 	*/
 
-/*
-	//if (!masterOut.empty()) {
-	data dataOut ;
-	masterOut.read(dataOut);
-	float ret[ch][dim][dim];
-	memcpy(ret,dataOut.image , ch*dim*dim*sizeof(float)); //WARNING,IF I DO memcpy(tmp,res) first item(0,0) will fail
-	//printf("%d: read data: %u\n",(int)i, (int)dataOut.data);
-	printf("\nAfter Processing, Channels:%d , Res: %dx%d\n",dataOut.ch,dataOut.dim,dataOut.dim);
-	for(int c=0; c<ch ; c++)
-	{
-		for(int i=0;i<dim;i++)
-		{
-			for(int j=0;j<dim;j++)
-			{
-				printf("%f\t",ret[c][i][j]);
-			}
-			printf("\n");
-		}
-		printf("\n");
-	}
-	//printf("\n%d\n",(int)count_out);
-	printf("\n\nNo segmentation Problems\nFinishing . . .");
-	*/
 	return 0;
 }
