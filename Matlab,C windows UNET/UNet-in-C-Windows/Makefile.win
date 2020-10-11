@@ -1,0 +1,43 @@
+# Project: Project1
+# Makefile created by Dev-C++ 5.11
+
+CPP      = g++.exe -D__DEBUG__
+CC       = gcc.exe -D__DEBUG__
+WINDRES  = windres.exe
+OBJ      = Untitled2.o Convolutions.o File_managment.o Pooling.o Prediction.o Utilities.o
+LINKOBJ  = Untitled2.o Convolutions.o File_managment.o Pooling.o Prediction.o Utilities.o
+LIBS     = -L"E:/Program Files (x86)/Dev-Cpp/MinGW64/lib" -L"E:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/lib" -static-libgcc -g3
+INCS     = -I"E:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"E:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"E:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"C:/Users/Labis/Desktop/UNet-in-C-master"
+CXXINCS  = -I"E:/Program Files (x86)/Dev-Cpp/MinGW64/include" -I"E:/Program Files (x86)/Dev-Cpp/MinGW64/x86_64-w64-mingw32/include" -I"E:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include" -I"E:/Program Files (x86)/Dev-Cpp/MinGW64/lib/gcc/x86_64-w64-mingw32/4.9.2/include/c++" -I"C:/Users/Labis/Desktop/UNet-in-C-master"
+BIN      = Project1.exe
+CXXFLAGS = $(CXXINCS) -g3 -std=c99
+CFLAGS   = $(INCS) -g3 -std=c99
+RM       = rm.exe -f
+
+.PHONY: all all-before all-after clean clean-custom
+
+all: all-before $(BIN) all-after
+
+clean: clean-custom
+	${RM} $(OBJ) $(BIN)
+
+$(BIN): $(OBJ)
+	$(CC) $(LINKOBJ) -o $(BIN) $(LIBS)
+
+Untitled2.o: Untitled2.c
+	$(CC) -c Untitled2.c -o Untitled2.o $(CFLAGS)
+
+Convolutions.o: Convolutions.c
+	$(CC) -c Convolutions.c -o Convolutions.o $(CFLAGS)
+
+File_managment.o: File_managment.c
+	$(CC) -c File_managment.c -o File_managment.o $(CFLAGS)
+
+Pooling.o: Pooling.c
+	$(CC) -c Pooling.c -o Pooling.o $(CFLAGS)
+
+Prediction.o: Prediction.c
+	$(CC) -c Prediction.c -o Prediction.o $(CFLAGS)
+
+Utilities.o: Utilities.c
+	$(CC) -c Utilities.c -o Utilities.o $(CFLAGS)

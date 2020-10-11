@@ -1,0 +1,138 @@
+------------------Python 128x128------------------------
+Calculating Forward step . . .
+Conv .1 : 4.1349 sec
+Conv .2 : 4.3864 sec
+Layer 1 8.5215 sec
+Maxpool 1 0.8366 sec
+Conv .1 : 2.1932 sec
+Conv .2 : 2.2737 sec
+Layer 2 4.4671 sec
+Maxpool 2 0.4222 sec
+Conv .1 : 1.1517 sec
+Conv .2 : 1.4644 sec
+Layer 3 2.6163 sec
+Maxpool 3 0.2671 sec
+Conv .1 : 0.9836 sec
+Conv .2 : 0.8616 sec
+Layer 4 1.8454 sec
+Maxpool 4 0.0845 sec
+Conv .1 : 0.4273 sec
+Conv .2 : 0.4706 sec
+Layer 5 0.8984 sec
+Deconv 6 0.9306 sec
+Conv .1 : 0.8917 sec
+Conv .2 : 0.8062 sec
+Layer 6 1.6981 sec
+Deconv 7 1.5787 sec
+Conv .1 : 1.4714 sec
+Conv .2 : 1.3086 sec
+Layer 7 2.7807 sec
+Deconv 8 2.6568 sec
+Conv .1 : 2.6399 sec
+Conv .2 : 2.3070 sec
+Layer 7 4.9471 sec
+Deconv 9 4.5309 sec
+Conv .1 : 4.5582 sec
+Conv .2 : 4.4108 sec
+Layer 9 8.9692 sec
+Overall Time : 48.3262 sec
+
+---------------------------Python 64x64--------------------------------------
+
+Conv .1 : 1.0664 sec
+Conv .2 : 1.1136 sec
+Layer 1 2.1802 sec
+Maxpool 1 0.2103 sec
+Conv .1 : 0.5682 sec
+Conv .2 : 0.5735 sec
+Layer 2 1.1419 sec
+Maxpool 2 0.0848 sec
+Conv .1 : 0.2883 sec
+Conv .2 : 0.4122 sec
+Layer 3 0.7007 sec
+Maxpool 3 0.0662 sec
+Conv .1 : 0.1604 sec
+Conv .2 : 0.2110 sec
+Layer 4 0.3716 sec
+Maxpool 4 0.0296 sec
+Conv .1 : 0.0879 sec
+Conv .2 : 0.1135 sec
+Layer 5 0.2016 sec
+Deconv 6 0.2251 sec
+Conv .1 : 0.2516 sec
+Conv .2 : 0.1952 sec
+Layer 6 0.4470 sec
+Deconv 7 0.4404 sec
+Conv .1 : 0.3758 sec
+Conv .2 : 0.3842 sec
+Layer 7 0.7602 sec
+Deconv 8 0.7151 sec
+Conv .1 : 0.6808 sec
+Conv .2 : 0.5797 sec
+Layer 7 1.2607 sec
+Deconv 9 1.1609 sec
+Conv .1 : 1.1590 sec
+Conv .2 : 1.1092 sec
+Layer 9 2.2683 sec
+Overall Time : 12.3455 sec
+
+--------------------------- C 128x128----------------------------------------
+Layer 1.1 : 35.9740 ms
+Layer 1.2 : 504.0200 ms
+Layer 1 : 3.7830 ms
+Layer 2.1 : 201.5350 ms
+Layer 2.2 : 301.4360 ms
+Layer 2 : 1.1950 ms
+Layer 3.1 : 142.4970 ms
+Layer 3.2 : 374.4480 ms
+Layer 3 : 0.6310 ms
+Layer 4.1 : 151.6700 ms
+Layer 4.2 : 287.5290 ms
+Layer 4 : 0.3730 ms
+Layer 5.1 : 141.7280 ms
+Layer 5.2 : 264.1470 ms
+Layer 6 : 270.0540 ms
+Layer 6.1 : 562.8150 ms
+Layer 6.2 : 263.9880 ms
+Layer 7 : 274.6500 ms
+Layer 7.1 : 531.9800 ms
+Layer 7.2 : 265.4080 ms
+Layer 8 : 252.2600 ms
+Layer 8.1 : 547.9050 ms
+Layer 8.2 : 257.0030 ms
+Layer 9 : 258.4870 ms
+Layer 9.1 : 517.9390 ms
+Layer 9.2 : 265.5210 ms
+Time needed: 6.69 sec
+
+
+------------------------- C 64x64---------------------------------------------
+
+Layer 1.1 : 4.9110 ms
+Layer 1.2 : 68.3600 ms
+Layer 1 : 0.6170 ms
+Layer 2.1 : 34.1720 ms
+Layer 2.2 : 69.5820 ms
+Layer 2 : 0.3710 ms
+Layer 3.1 : 35.7150 ms
+Layer 3.2 : 70.7020 ms
+Layer 3 : 0.2030 ms
+Layer 4.1 : 55.8870 ms
+Layer 4.2 : 120.3250 ms
+Layer 4 : 0.1480 ms
+Layer 5.1 : 58.2550 ms
+Layer 5.2 : 106.3010 ms
+Layer 6 : 81.4040 ms
+Layer 6.1 : 152.2290 ms
+Layer 6.2 : 70.1890 ms
+Layer 7 : 73.8790 ms
+Layer 7.1 : 139.2260 ms
+Layer 7.2 : 74.8700 ms
+Layer 8 : 79.7330 ms
+Layer 8.1 : 161.9050 ms
+Layer 8.2 : 91.6550 ms
+Layer 9 : 82.6360 ms
+Layer 9.1 : 155.0680 ms
+Layer 9.2 : 78.2650 ms
+Time needed: 1.87 sec
+
