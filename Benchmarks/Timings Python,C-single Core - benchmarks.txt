@@ -1,3 +1,72 @@
+------------------------------------ Python 256x256 -------------------------------------------
+Conv .1 : 16.9586 sec
+Conv .2 : 19.9997 sec
+Layer 1 36.9586 sec
+Maxpool 1 3.3313 sec
+Conv .1 : 10.2491 sec
+Conv .2 : 9.6018 sec
+Layer 2 19.8511 sec
+Maxpool 2 1.6557 sec
+Conv .1 : 4.7796 sec
+Conv .2 : 5.4609 sec
+Layer 3 10.2409 sec
+Maxpool 3 0.9189 sec
+Conv .1 : 3.2652 sec
+Conv .2 : 3.0273 sec
+Layer 4 6.2927 sec
+Maxpool 4 0.5187 sec
+Conv .1 : 1.5330 sec
+Conv .2 : 1.8117 sec
+Layer 5 3.3449 sec
+Deconv 6 3.7965 sec
+Conv .1 : 3.8290 sec
+Conv .2 : 3.2706 sec
+Layer 6 7.0998 sec
+Deconv 7 6.3485 sec
+Conv .1 : 6.3361 sec
+Conv .2 : 5.6311 sec
+Layer 7 11.9674 sec
+Deconv 8 10.2790 sec
+Conv .1 : 10.7748 sec
+Conv .2 : 9.6147 sec
+Layer 7 20.3898 sec
+Deconv 9 18.5078 sec
+Conv .1 : 19.0533 sec
+Conv .2 : 18.1654 sec
+Layer 9 37.2189 sec
+Overall Time : 199.7841 sec
+-----------------------------------------------------------------------------------------------
+------------------------------------ C 256x256 -------------------------------------------
+
+Layer 1.1 : 78.1750 ms
+Layer 1.2 : 1246.0740 ms
+Layer 1 : 7.2740 ms
+Layer 2.1 : 531.2960 ms
+Layer 2.2 : 1187.3160 ms
+Layer 2 : 3.6300 ms
+Layer 3.1 : 525.1470 ms
+Layer 3.2 : 1125.9340 ms
+Layer 3 : 1.8790 ms
+Layer 4.1 : 545.3470 ms
+Layer 4.2 : 1199.6510 ms
+Layer 4 : 1.0680 ms
+Layer 5.1 : 610.1960 ms
+Layer 5.2 : 1232.9230 ms
+Layer 6 : 1183.4080 ms
+Layer 6.1 : 2178.5180 ms
+Layer 6.2 : 1059.1160 ms
+Layer 7 : 1152.7750 ms
+Layer 7.1 : 2169.9280 ms
+Layer 7.2 : 1074.3040 ms
+Layer 8 : 1129.6850 ms
+Layer 8.1 : 2195.4890 ms
+Layer 8.2 : 1092.4420 ms
+Layer 9 : 1128.5360 ms
+Layer 9.1 : 2120.3800 ms
+Layer 9.2 : 1034.8100 ms
+
+Time needed: 25.85 sec
+
 ------------------Python 128x128------------------------
 Calculating Forward step . . .
 Conv .1 : 4.1349 sec
