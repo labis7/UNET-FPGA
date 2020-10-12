@@ -1,0 +1,101 @@
+========================== 64x64 ===========================
+Layer : 1.1 , Time: 3.3623 ms. 
+Layer : 1.2 , Time: 33.7716 ms. 
+Maxpool : 1 , Time: 0.9013 ms. 
+Layer : 2.1 , Time: 19.5146 ms. 
+Layer : 2.2 , Time: 38.3477 ms. 
+Maxpool : 2 , Time: 0.4826 ms. 
+Layer : 3.1 , Time: 24.7613 ms. 
+Layer : 3.2 , Time: 49.1740 ms. 
+Maxpool : 3 , Time: 0.2735 ms. 
+Layer : 4.1 , Time: 36.2257 ms. 
+Layer : 4.2 , Time: 72.2657 ms. 
+Maxpool : 4 , Time: 0.1688 ms 
+Layer : 5.1 , Time: 60.8482 ms. 
+Layer : 5.2 , Time: 121.5907 ms. 
+TConv : 6 , Time: 18.6769 ms. 
+Concat : 6 , Time: 0.7570 ms. 
+Layer : 6.1 , Time: 144.3528 ms. 
+Layer : 6.2 , Time: 72.2745 ms. 
+TConv : 7 , Time: 10.6624 ms. 
+Concat : 7 , Time: 1.4976 ms. 
+Layer : 7.1 , Time: 98.0176 ms. 
+Layer : 7.2 , Time: 49.1859 ms. 
+TConv : 8 , Time: 7.2185 ms. 
+Concat : 8 , Time: 2.9693 ms. 
+Layer : 8.1 , Time: 76.0361 ms. 
+Layer : 8.2 , Time: 38.3543 ms. 
+TConv : 9 , Time: 6.1855 ms. 
+Concat : 9 , Time: 5.9419 ms. 
+Layer : 9.1 , Time: 66.2269 ms. 
+Layer : 9.2 , Time: 33.7765 ms. 
+Last Layer : 10 , Time: 4.8667 ms. 
+Neural Network took 1084.000000 ms. 
+
+
+============================================================
+========================== 128x128 =========================
+Layer : 1.1 , Time: 12.7355 ms. 
+Layer : 1.2 , Time: 123.9350 ms.
+Maxpool : 1 , Time: 3.4720 ms. 
+Layer : 2.1 , Time: 66.8374 ms. 
+Layer : 2.2 , Time: 130.9993 ms. 
+Maxpool : 2 , Time: 1.7988 ms. 
+Layer : 3.1 , Time: 76.3232 ms. 
+Layer : 3.2 , Time: 151.3051 ms. 
+Maxpool : 3 , Time: 0.9621 ms. 
+Layer : 4.1 , Time: 98.1458 ms. 
+Layer : 4.2 , Time: 195.6014 ms. 
+Maxpool : 4 , Time: 0.5441 ms. 
+Layer : 5.1 , Time: 144.4150 ms. 
+Layer : 5.2 , Time: 288.4701 ms. 
+TConv : 6 , Time: 41.6469 ms. 
+Concat : 6 , Time: 2.9986 ms. 
+Layer : 6.1 , Time: 390.5350 ms. 
+Layer : 6.2 , Time: 195.6082 ms. 
+TConv : 7 , Time: 27.0456 ms. 
+Concat : 7 , Time: 5.9598 ms. 
+Layer : 7.1 , Time: 301.2914 ms. 
+Layer : 7.2 , Time: 151.3081 ms. 
+TConv : 8 , Time: 21.2448 ms. 
+Concat : 8 , Time: 11.8534 ms. 
+Layer : 8.1 , Time: 259.3480 ms. 
+Layer : 8.2 , Time: 131.0038 ms. 
+TConv : 9 , Time: 20.9087 ms. 
+Concat : 9 , Time: 23.6980 ms. 
+Layer : 9.1 , Time: 242.5680 ms. 
+Layer : 9.2 , Time: 123.9394 ms. 
+Last Layer : 10 , Time: 19.5819 ms. 
+
+Overall :  sec
+============================================================
+========================== 256x256 =========================
+
+Layer : 1.1 , Time: 26.7213 ms. 
+Layer : 1.2 , Time: 255.2361 ms. 
+Maxpool : 1 , Time: 7.4541 ms. 
+Layer : 2.1 , Time: 137.4546 ms. 
+Layer : 2.2 , Time: 269.1613 ms. 
+Maxpool : 2 , Time: 3.8207 ms. 
+Layer : 3.1 , Time: 154.3926 ms. 
+Layer : 3.2 , Time: 305.9010 ms. 
+Maxpool : 3 , Time: 2.0043 ms. 
+Layer : 4.1 , Time: 192.7887 ms. 
+Layer : 4.2 , Time: 384.1225 ms. 
+Maxpool : 4 , Time: 1.0959 ms. 
+Layer : 5.1 , Time: 272.4400 ms. 
+Layer : 5.2 , Time: 544.1374 ms. 
+TConv : 6 , Time: 80.9771 ms. 
+Layer : 6.1 , Time: 766.8103 ms. 
+Layer : 6.2 , Time: 384.1254 ms. 
+TConv : 7 , Time: 54.2580 ms. 
+Layer : 7.1 , Time: 608.9392 ms. 
+Layer : 7.2 , Time: 305.9036 ms. 
+TConv : 8 , Time: 43.7389 ms. 
+Layer : 8.1 , Time: 532.5955 ms. 
+Layer : 8.2 , Time: 269.1643 ms. 
+TConv : 9 , Time: 43.9116 ms. 
+Layer : 9.1 , Time: 499.0144 ms. 
+Layer : 9.2 , Time: 255.2384 ms. 
+
+Overall: 6.440 sec
