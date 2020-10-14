@@ -1,40 +1,40 @@
 ------------------------------------ Python 256x256 -------------------------------------------
-Conv .1 : 16.9586 sec
-Conv .2 : 19.9997 sec
-Layer 1 36.9586 sec
-Maxpool 1 3.3313 sec
-Conv .1 : 10.2491 sec
-Conv .2 : 9.6018 sec
-Layer 2 19.8511 sec
-Maxpool 2 1.6557 sec
-Conv .1 : 4.7796 sec
-Conv .2 : 5.4609 sec
-Layer 3 10.2409 sec
-Maxpool 3 0.9189 sec
-Conv .1 : 3.2652 sec
-Conv .2 : 3.0273 sec
-Layer 4 6.2927 sec
-Maxpool 4 0.5187 sec
-Conv .1 : 1.5330 sec
-Conv .2 : 1.8117 sec
-Layer 5 3.3449 sec
-Deconv 6 3.7965 sec
-Conv .1 : 3.8290 sec
-Conv .2 : 3.2706 sec
-Layer 6 7.0998 sec
-Deconv 7 6.3485 sec
-Conv .1 : 6.3361 sec
-Conv .2 : 5.6311 sec
-Layer 7 11.9674 sec
-Deconv 8 10.2790 sec
-Conv .1 : 10.7748 sec
-Conv .2 : 9.6147 sec
-Layer 7 20.3898 sec
-Deconv 9 18.5078 sec
-Conv .1 : 19.0533 sec
-Conv .2 : 18.1654 sec
-Layer 9 37.2189 sec
-Overall Time : 199.7841 sec
+Conv .1 : 16,958.6 sec
+Conv .2 : 19.999.7 sec
+Layer 1 36.958.6 sec
+Maxpool 1 3,331.3 sec
+Conv .1 : 10,249.1 sec
+Conv .2 : 9,601.8 sec
+Layer 2 19,851.1 sec
+Maxpool 2 1,655.7 sec
+Conv .1 : 4,779.6 sec
+Conv .2 : 5,460.9 sec
+Layer 3 10,240.9 sec
+Maxpool 3 0,918.9 sec
+Conv .1 : 3,265.2 sec
+Conv .2 : 3,027.3 sec
+Layer 4 6,292.7 sec
+Maxpool 4 0,518.7 sec
+Conv .1 : 1,533.0 sec
+Conv .2 : 1,811.7 sec
+Layer 5 3,344.9 sec
+Deconv 6 3,796.5 sec
+Conv .1 : 3,829.0 sec
+Conv .2 : 3,270.6 sec
+Layer 6 7,099.8 sec
+Deconv 7 6,348.5 sec
+Conv .1 : 6,336.1 sec
+Conv .2 : 5,631.1 sec
+Layer 7 11,967.4 sec
+Deconv 8 10,279.0 sec
+Conv .1 : 10,774.8 sec
+Conv .2 : 9,614.7 sec
+Layer 8 20,389.8 sec
+Deconv 9 18,507.8 sec
+Conv .1 : 19,053.3 sec
+Conv .2 : 18,165.4 sec
+Layer 9 37,218.9 sec
+Overall Time : 199,784.1  sec
 -----------------------------------------------------------------------------------------------
 ------------------------------------ C 256x256 -------------------------------------------
 
@@ -69,64 +69,63 @@ Time needed: 25.85 sec
 
 ------------------Python 128x128------------------------
 Calculating Forward step . . .
-Conv .1 : 4.1349 sec
-Conv .2 : 4.3864 sec
-Maxpool 1 0.8366 sec
-Conv .1 : 2.1932 sec
-Conv .2 : 2.2737 sec
-Maxpool 2 0.4222 sec
-Conv .1 : 1.1517 sec
-Conv .2 : 1.4644 sec
-Maxpool 3 0.2671 sec
-Conv .1 : 0.9836 sec
-Conv .2 : 0.8616 sec
-Maxpool 4 0.0845 sec
-Conv .1 : 0.4273 sec
-Conv .2 : 0.4706 sec
-Deconv 6 0.9306 sec
-Conv .1 : 0.8917 sec
-Conv .2 : 0.8062 sec
-Deconv 7 1.5787 sec
-Conv .1 : 1.4714 sec
-Conv .2 : 1.3086 sec
-Deconv 8 2.6568 sec
-Conv .1 : 2.6399 sec
-Conv .2 : 2.3070 sec
-Deconv 9 4.5309 sec
-Conv .1 : 4.5582 sec
-Conv .2 : 4.4108 sec
-Overall Time : 48.3262 sec
+Conv .1 : 4,134.9 ms
+Conv .2 : 4,386.4 ms
+Maxpool 1 0,836.6 ms
+Conv .1 : 2,193.2 ms
+Conv .2 : 2,273.7 ms
+Maxpool 2 0,422.2 ms
+Conv .1 : 1,151.7 ms
+Conv .2 : 1,464.4 ms
+Maxpool 3 0,267.1 ms
+Conv .1 : 0,983.6 ms
+Conv .2 : 0,861.6 ms
+Maxpool 4 0,084.5 ms
+Conv .1 : 0,427.3 ms
+Conv .2 : 0,470.6 ms
+Deconv 6 0,930.6 ms
+Conv .1 : 0,891.7 ms
+Conv .2 : 0,806.2 ms
+Deconv 7 1,578.7 ms
+Conv .1 : 1,471.4 ms
+Conv .2 : 1,308.6 ms
+Deconv 8 2,656.8 ms
+Conv .1 : 2,639.9 ms
+Conv .2 : 2,307.0 ms
+Deconv 9 4,530.9 ms
+Conv .1 : 4,558.2 ms
+Conv .2 : 4,410.8 ms
+Overall Time : 48,326.2 sec
 
 ---------------------------Python 64x64--------------------------------------
 
-Conv .1 : 1.0664 sec
-Conv .2 : 1.1136 sec
-Maxpool 1 0.2103 sec
-Conv .1 : 0.5682 sec
-Conv .2 : 0.5735 sec
-Maxpool 2 0.0848 sec
-Conv .1 : 0.2883 sec
-Conv .2 : 0.4122 sec
-Maxpool 3 0.0662 sec
-Conv .1 : 0.1604 sec
-Conv .2 : 0.2110 sec
-Maxpool 4 0.0296 sec
-Conv .1 : 0.0879 sec
-Conv .2 : 0.1135 sec
-Deconv 6 0.2251 sec
-Conv .1 : 0.2516 sec
-Conv .2 : 0.1952 sec
-Deconv 7 0.4404 sec
-Conv .1 : 0.3758 sec
-Conv .2 : 0.3842 sec
-Deconv 8 0.7151 sec
-Conv .1 : 0.6808 sec
-Conv .2 : 0.5797 sec
-Deconv 9 1.1609 sec
-Conv .1 : 1.1590 sec
-Conv .2 : 1.1092 sec
-Overall Time : 12.3455 sec
-
+Conv .1 : 1,066.4 ms
+Conv .2 : 1,113.6 ms
+Maxpool 1 0,210.3 ms
+Conv .1 : 0,568.2 ms
+Conv .2 : 0,573.5 ms
+Maxpool 2 0,084.8 ms
+Conv .1 : 0,288.3 ms
+Conv .2 : 0,412.2 ms
+Maxpool 3 0,066.2 ms
+Conv .1 : 0,160.4 ms
+Conv .2 : 0,211.0 ms
+Maxpool 4 0,029.6 ms
+Conv .1 : 0,087.9 ms
+Conv .2 : 0,113.5 ms
+Deconv 6 0,225.1 ms
+Conv .1 : 0,251.6 ms
+Conv .2 : 0,195.2 ms
+Deconv 7 0,440.4 ms
+Conv .1 : 0,375.8 ms
+Conv .2 : 0,384.2 ms
+Deconv 8 0,715.1 ms
+Conv .1 : 0,680.8 ms
+Conv .2 : 0,579.7 ms
+Deconv 9 1,160.9 ms
+Conv .1 : 1,159.0 ms
+Conv .2 : 1,109.2 ms
+Overall Time : 12,345.5 sec
 --------------------------- C 128x128----------------------------------------
 Conv 1.1 : 35.9740 ms
 Conv 1.2 : 504.0200 ms

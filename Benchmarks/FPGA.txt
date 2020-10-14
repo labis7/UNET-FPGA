@@ -30,7 +30,7 @@ Concat : 9 , Time: 5.9419 ms.
 Layer : 9.1 , Time: 66.2269 ms. 
 Layer : 9.2 , Time: 33.7765 ms. 
 Last Layer : 10 , Time: 4.8667 ms. 
-Neural Network took 1084.000000 ms. 
+Neural Network took 1118.000000 ms. 
 
 
 ============================================================
@@ -67,7 +67,7 @@ Layer : 9.1 , Time: 242.5680 ms.
 Layer : 9.2 , Time: 123.9394 ms. 
 Last Layer : 10 , Time: 19.5819 ms. 
 
-Overall :  sec
+Overall : 3.304 sec
 ============================================================
 ========================== 256x256 =========================
 

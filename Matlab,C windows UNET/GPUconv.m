@@ -28,8 +28,9 @@
 %clear all
 %clearvars -global
 ch=1;
-dim=128;
+dim=256;
 f_num=16;
+batch_size=1;
 start = tic;
 skips={};
 for i = 1:5
@@ -37,7 +38,7 @@ for i = 1:5
     if i ~= 1
         f_num=f_num*2;%16,32,64,128
     end
-    res = conv_block(f_num,ch,dim,i);
+    res = conv_block(f_num,ch,dim,batch_size,i);
     ch=f_num;
 
     
@@ -83,7 +84,7 @@ for i = 6:9
     C = cat(3,tconv,skips{10-i});
     
     
-    res = conv_block(f_num,ch,dim,i);
+    res = conv_block(f_num,ch,dim,batch_size,i);
     ch=f_num;
     
     %MAXPOOL
@@ -113,17 +114,17 @@ fprintf("Overall Time : %.2f ms",elapsed*1000);
 %wait(gpuDevice
 
 
-function res = conv_block(f_num,ch,dim,i)
+function res = conv_block(f_num,ch,dim,batch_size,i)
     st=tic;
 
     %CONV1
-    img = single(rand(dim,dim,ch, 'gpuArray'));
+    img = single(rand(dim,dim,ch,batch_size, 'gpuArray'));
 
     f = single(rand(3,3,ch,f_num, 'gpuArray'));
 
     bias = single(rand(f_num,1, 'gpuArray'));
 
-    imgdl =dlarray(img,'SSC');
+    imgdl =dlarray(img,'SSCB');
 
     conv1_1 = dlconv(imgdl,f,bias, 'padding','same');
     
@@ -140,7 +141,7 @@ function res = conv_block(f_num,ch,dim,i)
     %CONV2--------------------------------------------------
     
     ch=f_num;
-    img = single(rand(dim,dim,ch, 'gpuArray'));
+    %img = single(rand(dim,dim,ch,batch_size, 'gpuArray'));
 
     f = single(rand(3,3,ch,f_num, 'gpuArray'));
 
