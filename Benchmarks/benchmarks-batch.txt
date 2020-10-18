@@ -1,0 +1,56 @@
+(1024 samples)
+
+750ti:
+batch = 1, 39.06 ms/step, 40 sec
+
+batch = 2, 71 ms/step(2samples) , 37 sec
+
+batch = 4, ,136.7 ms/step, 35 sec
+
+batch = 8 ,270ms/step , 35 sec
+
+batch = 16 ,547ms/step , 35 sec
+
+batch = 32 ,1 s/step , 34 sec
+
+batch = 64,  2s/step, 33s
+
+batch=128  4s/step, 32s
+
+
+
+---------------
+cpu-matlab -batches
+
+b=2. 884ms/b ,--> 442ms per image
+
+b=4, 1294.553 ms/b, --> 323.63ms per image
+
+b=8, 1846.93 ms/b,--> 230.86ms per image
+
+b=16, 3316.19 ms/b,--> 207.26ms per image
+
+b=32, 6436.053 ms/b,--> 201.12ms per image
+
+b=64, 12940.35 ms/b,--> 202.19ms per image
+
+b=128, 28016.45 ms/b,--> 218.87ms per image
+
+b=256, 58077.26 ms/b --> 226.86ms per image
+-OUT OF RAM
+
+----------------------------------------------
+Gpu-matlab -batches
+
+b=2. 228.63ms/b ,--> 114.31ms per image
+
+b=4, 414.06 ms/b, --> 103.515ms per image
+
+b=8, 770.39 ms/b,--> 96.29ms per image
+
+b=16, 1524.89 ms/b,--> 95.3ms per image
+
+b=32, 3051.25 ms/b,--> 95.35ms per image
+-OUT OF VRAM
+
+
