@@ -1,21 +1,18 @@
 (1024 samples)
+Keras - CPU
+i5 3210M:
+b=1,  200ms/step
+b=2,  153ms/step
+b=4,  148ms/step
+b=8,  151ms/step
+b=16,  151ms/step
+b=32,  155ms/step
+b=64,  155ms/step
+b=128,  157ms/step
+b=256,  ms/step
+b=512,  ms/step
 
-750ti:
-batch = 1, 39.06 ms/step, 40 sec
 
-batch = 2, 71 ms/step(2samples) , 37 sec
-
-batch = 4, ,136.7 ms/step, 35 sec
-
-batch = 8 ,270ms/step , 35 sec
-
-batch = 16 ,547ms/step , 35 sec
-
-batch = 32 ,1 s/step , 34 sec
-
-batch = 64,  2s/step, 33s
-
-batch=128  4s/step, 32s
 
 
 
