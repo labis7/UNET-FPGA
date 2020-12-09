@@ -1,0 +1,85 @@
+INFO: [HLS 200-10] Running 'C:/Xilinx/Vivado/2019.2/bin/unwrapped/win64.o/vivado_hls.exe'
+INFO: [HLS 200-10] For user 'Labis' on host 'superstructure' (Windows NT_amd64 version 6.2) on Wed Dec 09 21:48:24 +0200 2020
+INFO: [HLS 200-10] In directory 'C:/Users/Labis/Desktop/anadiatasomena/UNET-FPGA'
+Sourcing Tcl script 'C:/Users/Labis/Desktop/anadiatasomena/UNET-FPGA/Maxpool_test/solution1/csynth.tcl'
+INFO: [HLS 200-10] Opening project 'C:/Users/Labis/Desktop/anadiatasomena/UNET-FPGA/Maxpool_test'.
+INFO: [HLS 200-10] Adding design file 'Maxpool_test/my_ip_hls.cpp' to the project
+INFO: [HLS 200-10] Adding design file 'Maxpool_test/my_ip_hls.hpp' to the project
+INFO: [HLS 200-10] Adding test bench file 'Maxpool_test/my_ip_hls_tb.cpp' to the project
+INFO: [HLS 200-10] Opening solution 'C:/Users/Labis/Desktop/anadiatasomena/UNET-FPGA/Maxpool_test/solution1'.
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 5ns.
+INFO: [SYN 201-201] Setting up clock 'default' with an uncertainty of 0.625ns.
+INFO: [HLS 200-10] Setting target device to 'xczu9eg-ffvb1156-2-e'
+INFO: [HLS 200-435] Setting 'config_sdx -optimization_level' configuration: config_export -vivado_optimization_level=2
+INFO: [HLS 200-435] Setting 'config_sdx -target' configuration: config_export -vivado_optimization_level=2
+INFO: [HLS 200-435] Setting 'config_sdx -target' configuration: set_clock_uncertainty default
+INFO: [SYN 201-201] Setting up clock 'default' with a period of 5ns.
+WARNING: [HLS 200-483] The 'config_sdx -optimization_level' command is deprecated and will be removed in a future release. Use 'config_export -vivado_optimization_level' as its replacement.
+INFO: [HLS 200-435] Setting 'config_sdx -optimization_level' configuration: config_export -vivado_optimization_level=2
+INFO: [HLS 200-435] Setting 'config_sdx -target' configuration: config_export -vivado_optimization_level=2
+INFO: [HLS 200-435] Setting 'config_sdx -target' configuration: set_clock_uncertainty default
+WARNING: [HLS 200-484] The 'config_sdx -optimization_level' command is deprecated and will be removed in a future release.
+INFO: [SCHED 204-61] Option 'relax_ii_for_timing' is enabled, will increase II to preserve clock frequency constraints.
+INFO: [HLS 200-10] Analyzing design file 'Maxpool_test/my_ip_hls.cpp' ... 
+INFO: [HLS 200-111] Finished Linking Time (s): cpu = 00:00:02 ; elapsed = 00:00:12 . Memory (MB): peak = 198.418 ; gain = 108.637
+INFO: [HLS 200-111] Finished Checking Pragmas Time (s): cpu = 00:00:02 ; elapsed = 00:00:12 . Memory (MB): peak = 198.418 ; gain = 108.637
+INFO: [HLS 200-10] Starting code transformations ...
+INFO: [HLS 200-111] Finished Standard Transforms Time (s): cpu = 00:00:02 ; elapsed = 00:00:13 . Memory (MB): peak = 198.418 ; gain = 108.637
+INFO: [HLS 200-10] Checking synthesizability ...
+INFO: [HLS 200-111] Finished Checking Synthesizability Time (s): cpu = 00:00:02 ; elapsed = 00:00:13 . Memory (MB): peak = 198.418 ; gain = 108.637
+INFO: [XFORM 203-101] Partitioning array 'img_t1'  in dimension 1 with a cyclic factor 2.
+INFO: [XFORM 203-101] Partitioning array 'img_t0'  in dimension 1 with a cyclic factor 2.
+INFO: [HLS 200-111] Finished Pre-synthesis Time (s): cpu = 00:00:02 ; elapsed = 00:00:13 . Memory (MB): peak = 198.418 ; gain = 108.637
+INFO: [XFORM 203-541] Flattening a loop nest 'Loop-1.1' (Maxpool_test/my_ip_hls.cpp:40:13) in function 'my_ip_hls'.
+INFO: [XFORM 203-541] Flattening a loop nest 'Loop-1' (Maxpool_test/my_ip_hls.cpp:35:13) in function 'my_ip_hls'.
+INFO: [HLS 200-111] Finished Architecture Synthesis Time (s): cpu = 00:00:02 ; elapsed = 00:00:13 . Memory (MB): peak = 198.418 ; gain = 108.637
+INFO: [HLS 200-10] Starting hardware synthesis ...
+INFO: [HLS 200-10] Synthesizing 'my_ip_hls' ...
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-42] -- Implementing module 'my_ip_hls' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [SCHED 204-11] Starting scheduling ...
+INFO: [SCHED 204-61] Pipelining loop 'Loop 1'.
+INFO: [SCHED 204-61] Pipelining result : Target II = 1, Final II = 1, Depth = 3.
+INFO: [SCHED 204-11] Finished scheduling.
+INFO: [HLS 200-111]  Elapsed time: 13.126 seconds; current allocated memory: 119.426 MB.
+INFO: [BIND 205-100] Starting micro-architecture generation ...
+INFO: [BIND 205-101] Performing variable lifetime analysis.
+INFO: [BIND 205-101] Exploring resource sharing.
+INFO: [BIND 205-101] Binding ...
+INFO: [BIND 205-100] Finished micro-architecture generation.
+INFO: [HLS 200-111]  Elapsed time: 0.075 seconds; current allocated memory: 119.642 MB.
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [HLS 200-10] -- Generating RTL for module 'my_ip_hls' 
+INFO: [HLS 200-10] ----------------------------------------------------------------
+INFO: [RTGEN 206-500] Setting interface mode on port 'my_ip_hls/image_V_d1' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'my_ip_hls/image_V_d2' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'my_ip_hls/result_V' to 'axis' (register, both mode).
+INFO: [RTGEN 206-500] Setting interface mode on port 'my_ip_hls/slaveIn_ch' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on port 'my_ip_hls/slaveIn_dim' to 's_axilite & ap_none'.
+INFO: [RTGEN 206-500] Setting interface mode on function 'my_ip_hls' to 's_axilite & ap_ctrl_hs'.
+INFO: [RTGEN 206-100] Bundling port 'return' to AXI-Lite port CRTL_BUS.
+INFO: [RTGEN 206-100] Bundling port 'slaveIn_ch' and 'slaveIn_dim' to AXI-Lite port CTRL_BUS.
+INFO: [SYN 201-210] Renamed object name 'my_ip_hls_mul_64ns_32ns_96_2_1' to 'my_ip_hls_mul_64nbkb' due to the length limit 20
+WARNING: [RTGEN 206-101] Port 'my_ip_hls/image_V_d1_TDATA' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'my_ip_hls/image_V_d1_TVALID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'my_ip_hls/image_V_d1_TREADY' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'my_ip_hls/image_V_d2_TDATA' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'my_ip_hls/image_V_d2_TVALID' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+WARNING: [RTGEN 206-101] Port 'my_ip_hls/image_V_d2_TREADY' has no fanin or fanout and is left dangling.
+               Please use C simulation to confirm this function argument can be read from or written to.
+INFO: [RTGEN 206-100] Generating core module 'my_ip_hls_mul_64nbkb': 1 instance(s).
+INFO: [RTGEN 206-100] Finished creating RTL model for 'my_ip_hls'.
+INFO: [HLS 200-111]  Elapsed time: 0.162 seconds; current allocated memory: 120.214 MB.
+INFO: [HLS 200-790] **** Loop Constraint Status: All loop constraints were satisfied.
+INFO: [HLS 200-789] **** Estimated Fmax: 271.59 MHz
+INFO: [RTMG 210-282] Generating pipelined core: 'my_ip_hls_mul_64nbkb_MulnS_0'
+INFO: [HLS 200-111] Finished generating all RTL models Time (s): cpu = 00:00:03 ; elapsed = 00:00:15 . Memory (MB): peak = 198.418 ; gain = 108.637
+INFO: [VHDL 208-304] Generating VHDL RTL for my_ip_hls.
+INFO: [VLOG 209-307] Generating Verilog RTL for my_ip_hls.
+INFO: [HLS 200-112] Total elapsed time: 14.85 seconds; peak allocated memory: 120.214 MB.
