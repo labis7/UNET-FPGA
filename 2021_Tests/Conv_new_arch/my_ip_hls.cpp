@@ -4,6 +4,8 @@ static float img_t0[258]; // Line Buffer(LB1) - Including zero padding
 static float img_t1[258]; // Line Buffer(LB2) - Including zero padding
 static float img_t2[258]; // Line Buffer(LB3) - Including zero padding
 static float img_t3[258]; // Line Buffer(LB3) - Including zero padding
+static float img_t4[258]; // Line Buffer(LB3) - Including zero padding
+static float img_t5[258]; // Line Buffer(LB3) - Including zero padding
 
 static float filt[F_DIM*F_DIM]; // Filter locally saved
 static float res[258][258];     // temporary result buffer(1 output channel)
@@ -27,6 +29,9 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 #pragma HLS ARRAY_PARTITION variable=img_t0 cyclic factor=8 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t1 cyclic factor=8 dim=1
 #pragma HLS ARRAY_PARTITION variable=img_t2 cyclic factor=8 dim=1
+#pragma HLS ARRAY_PARTITION variable=img_t3 cyclic factor=8 dim=1
+#pragma HLS ARRAY_PARTITION variable=img_t4 cyclic factor=8 dim=1
+#pragma HLS ARRAY_PARTITION variable=img_t5 cyclic factor=8 dim=1
 //#pragma HLS ARRAY_PARTITION variable=img cyclic factor=2 dim=1
 
 
@@ -94,6 +99,10 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 	img_t2[dim_t-1]=0;
 	img_t3[0]=0;
 	img_t3[dim_t-1]=0;
+	img_t4[0]=0;
+	img_t4[dim_t-1]=0;
+	img_t5[0]=0;
+	img_t5[dim_t-1]=0;
 
 	// Now we can start the convolution
 	float sum;
@@ -132,10 +141,11 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 
 
 			// CONVOLUTION
-			for(int x=0; x<o_dim-2; x+=2)//last iteration is skipped for now ...
+			for(int x=0; x<o_dim-4; x+=4)//last 4 iterations are skipped for now ...
 			{
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=14 max=14
+#pragma HLS loop_tripcount min=7 max=7
+
 				for(int z = 1 ; z<dim_t-1; z++)
 #pragma HLS pipeline
 #pragma HLS loop_tripcount min=32 max=32
@@ -144,6 +154,16 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 #pragma HLS pipeline
 #pragma HLS loop_tripcount min=32 max=32
 					img_t3[z] = image.read();//img[counter++];//load the new line buffer(4th)
+				for(int z = 1 ; z<dim_t-1; z++)
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=32 max=32
+					img_t4[z] = image.read();//img[counter++];//load the new line buffer(4th)
+				for(int z = 1 ; z<dim_t-1; z++)
+#pragma HLS pipeline
+#pragma HLS loop_tripcount min=32 max=32
+					img_t5[z] = image.read();//img[counter++];//load the new line buffer(4th)
+
+
 				//Execute the actual convolution, loop unrolled factor=2
 				for(int y=0; y<o_dim; y+=8)
 				{
@@ -296,24 +316,24 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 					reg004 = reg6+reg7;
 					reg8 = img_t2[y_t+5]*filt[8];
 					////////////////////
-					//reg034 = reg003 +reg004;
-					//res100 = reg012+reg034;
-					//res[x][y_t+3]+=  res100 + reg8;
-					////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+					reg034 = reg003 +reg004;
+					res100 = reg012+reg034;
+					res[x][y_t+3]+=  res100 + reg8;
+					///////////////////////////////////////////////////////////////////  2/4   /////////////////////////////////////////////////
 
 					reg0   = img_t1[y]*filt[0];
 					reg1   = img_t1[y+1]*filt[1];
-					reg034 = reg003 +reg004;       ///////PREVIOUS PART
+					//reg034 = reg003 +reg004;       ///////PREVIOUS PART
 					reg01 = reg0+reg1;
 					reg2   = img_t1[y+2]*filt[2];
 					reg3   = img_t2[y]*filt[3];
 					reg02 = reg2+reg3;
-					res100 = reg012+reg034;         ///////PREVIOUS PART
+					//res100 = reg012+reg034;         ///////PREVIOUS PART
 					reg4   = img_t2[y+1]*filt[4];
 					reg5   = img_t2[y+2]*filt[5];
 					reg01 = reg01 + reg02;
 					reg03 = reg4+reg5;
-					res[x][y_t+3]+=  res100 + reg8; ///////PREVIOUS PART
+					//res[x][y_t+3]+=  res100 + reg8; ///////PREVIOUS PART
 					reg6  = img_t3[y]*filt[6];
 					reg7  = img_t3[y+1]*filt[7];
 					reg04= reg6+reg7;
@@ -454,34 +474,353 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 					res100 = reg012+reg034;
 					res[x+1][y_t+3]+=  res100 + reg8;
 
+					//////////////////////////////////////////////////////////////////////   3/4  ////////////////////////////////////////////////////////
+
+					reg0   = img_t2[y]*filt[0];
+					reg1   = img_t2[y+1]*filt[1];
+					//reg034 = reg003 +reg004;       ///////PREVIOUS PART
+					reg01 = reg0+reg1;
+					reg2   = img_t2[y+2]*filt[2];
+					reg3   = img_t3[y]*filt[3];
+					reg02 = reg2+reg3;
+					//res100 = reg012+reg034;         ///////PREVIOUS PART
+					reg4   = img_t3[y+1]*filt[4];
+					reg5   = img_t3[y+2]*filt[5];
+					reg01 = reg01 + reg02;
+					reg03 = reg4+reg5;
+					//res[x][y_t+3]+=  res100 + reg8; ///////PREVIOUS PART
+					reg6  = img_t4[y]*filt[6];
+					reg7  = img_t4[y+1]*filt[7];
+					reg04= reg6+reg7;
+					reg8  = img_t4[y+2]*filt[8];
+					////////////////////////////////
+					reg0 = img_t2[y+1]*filt[0];
+					reg01 = reg01+reg03;
+					reg1 = img_t2[y+2]*filt[1];
+					reg001 = reg0 +reg1;
+					reg2 = img_t2[y+3]*filt[2];
+					res1 =reg04+reg8;
+					reg3 = img_t3[y+1]*filt[3];
+					reg002 = reg2 + reg3;
+					reg4 = img_t3[y+2]*filt[4];
+					res1 = res1 + reg01;
+					reg5 = img_t3[y+3]*filt[5];
+					reg012 = reg001+reg002;
+					reg003 =reg4+reg5;
+					reg6 =img_t4[y+1]*filt[6];
+					res[x+2][y]+=  res1;
+					reg7 = img_t4[y+2]*filt[7];
+					reg004 = reg6+reg7;
+					reg8 = img_t4[y+3]*filt[8];
+					////////////////////
+					reg0   = img_t2[y+2]*filt[0];
+					reg1   = img_t2[y+3]*filt[1];
+					reg01 = reg0+reg1;
+					reg034 = reg003 +reg004;
+					reg2   = img_t2[y+4]*filt[2];
+					reg3   = img_t3[y+2]*filt[3];
+					reg02 = reg2+reg3;
+					res100 = reg012+reg034;
+					reg4   = img_t3[y+3]*filt[4];
+					reg5   = img_t3[y+4]*filt[5];
+					reg01 = reg01 + reg02;
+					reg03 = reg4+reg5;
+					res[x+2][y+1]+=  res100 + reg8;
+					reg6  = img_t4[y+2]*filt[6];
+					reg7  = img_t4[y+3]*filt[7];
+					reg04= reg6+reg7;
+					reg8  = img_t4[y+4]*filt[8];
+					////////////////////////
+					reg0 = img_t2[y+3]*filt[0];
+					reg01 = reg01+reg03;
+					reg1 = img_t2[y+4]*filt[1];
+					reg001 = reg0 +reg1;
+					reg2 = img_t2[y+5]*filt[2];
+					res1 =reg04+reg8;
+					reg3 = img_t3[y+3]*filt[3];
+					reg002 = reg2 + reg3;
+					reg4 = img_t3[y+4]*filt[4];
+					res1 = res1 + reg01;
+					reg5 = img_t3[y+5]*filt[5];
+					reg012 = reg001+reg002;
+					reg003 =reg4+reg5;
+					reg6 =img_t4[y+3]*filt[6];
+					res[x+2][y+2]+=  res1;
+					reg7 = img_t4[y+4]*filt[7];
+					reg004 = reg6+reg7;
+					reg8 = img_t4[y+5]*filt[8];
+					////////////////////////////////////////////////////////////////////////////////// 4 more unrolled
+					y_t=y+4;
+					reg0   = img_t2[y+4]*filt[0];
+					reg1   = img_t2[y+5]*filt[1];
+					reg034 = reg003 +reg004;//
+					reg01 = reg0+reg1;
+					reg2   = img_t2[y_t+2]*filt[2];
+					reg3   = img_t3[y_t]*filt[3];
+					reg02 = reg2+reg3;
+					res100 = reg012+reg034;//
+					reg4   = img_t3[y_t+1]*filt[4];
+					reg5   = img_t3[y_t+2]*filt[5];
+					reg01 = reg01 + reg02;
+					reg03 = reg4+reg5;
+					res[x+2][y+3]+=  res100 + reg8;//
+					reg6  = img_t4[y_t]*filt[6];
+					reg7  = img_t4[y_t+1]*filt[7];
+					reg04= reg6+reg7;
+					reg8  = img_t4[y_t+2]*filt[8];
+					////////////////////////////////
+					reg0 = img_t2[y_t+1]*filt[0];
+					reg01 = reg01+reg03;
+					reg1 = img_t2[y_t+2]*filt[1];
+					reg001 = reg0 +reg1;
+					reg2 = img_t2[y_t+3]*filt[2];
+					res1 =reg04+reg8;
+					reg3 = img_t3[y_t+1]*filt[3];
+					reg002 = reg2 + reg3;
+					reg4 = img_t3[y_t+2]*filt[4];
+					res1 = res1 + reg01;
+					reg5 = img_t3[y_t+3]*filt[5];
+					reg012 = reg001+reg002;
+					reg003 =reg4+reg5;
+					reg6 =img_t4[y_t+1]*filt[6];
+					res[x+2][y_t]+=  res1;
+					reg7 = img_t4[y_t+2]*filt[7];
+					reg004 = reg6+reg7;
+					reg8 = img_t4[y_t+3]*filt[8];
+					////////////////////
+					reg0   = img_t2[y_t+2]*filt[0];
+					reg1   = img_t2[y_t+3]*filt[1];
+					reg01 = reg0+reg1;
+					reg034 = reg003 +reg004;
+					reg2   = img_t2[y_t+4]*filt[2];
+					reg3   = img_t3[y_t+2]*filt[3];
+					reg02 = reg2+reg3;
+					res100 = reg012+reg034;
+					reg4   = img_t3[y_t+3]*filt[4];
+					reg5   = img_t3[y_t+4]*filt[5];
+					reg01 = reg01 + reg02;
+					reg03 = reg4+reg5;
+					res[x+2][y_t+1]+=  res100 + reg8;
+					reg6  = img_t4[y_t+2]*filt[6];
+					reg7  = img_t4[y_t+3]*filt[7];
+					reg04= reg6+reg7;
+					reg8  = img_t4[y_t+4]*filt[8];
+					////////////////////////
+					reg0 = img_t2[y_t+3]*filt[0];
+					reg01 = reg01+reg03;
+					reg1 = img_t2[y_t+4]*filt[1];
+					reg001 = reg0 +reg1;
+					reg2 = img_t2[y_t+5]*filt[2];
+					res1 =reg04+reg8;
+					reg3 = img_t3[y_t+3]*filt[3];
+					reg002 = reg2 + reg3;
+					reg4 = img_t3[y_t+4]*filt[4];
+					res1 = res1 + reg01;
+					reg5 = img_t3[y_t+5]*filt[5];
+					reg012 = reg001+reg002;
+					reg003 =reg4+reg5;
+					reg6 =img_t4[y_t+3]*filt[6];
+					res[x+2][y_t+2]+=  res1;
+					reg7 = img_t4[y_t+4]*filt[7];
+					reg004 = reg6+reg7;
+					reg8 = img_t4[y_t+5]*filt[8];
+					////////////////////
+					reg034 = reg003 +reg004;
+					res100 = reg012+reg034;
+					res[x+2][y_t+3]+=  res100 + reg8;
+
+					/////////////////////////////////////////////////////////////////    4/4      //////////////////////////////////////////////////////////
+
+
+					reg0   = img_t3[y]*filt[0];
+					reg1   = img_t3[y+1]*filt[1];
+					//reg034 = reg003 +reg004;       ///////PREVIOUS PART
+					reg01 = reg0+reg1;
+					reg2   = img_t3[y+2]*filt[2];
+					reg3   = img_t4[y]*filt[3];
+					reg02 = reg2+reg3;
+					//res100 = reg012+reg034;         ///////PREVIOUS PART
+					reg4   = img_t4[y+1]*filt[4];
+					reg5   = img_t4[y+2]*filt[5];
+					reg01 = reg01 + reg02;
+					reg03 = reg4+reg5;
+					//res[x][y_t+3]+=  res100 + reg8; ///////PREVIOUS PART
+					reg6  = img_t5[y]*filt[6];
+					reg7  = img_t5[y+1]*filt[7];
+					reg04= reg6+reg7;
+					reg8  = img_t5[y+2]*filt[8];
+					////////////////////////////////
+					reg0 = img_t3[y+1]*filt[0];
+					reg01 = reg01+reg03;
+					reg1 = img_t3[y+2]*filt[1];
+					reg001 = reg0 +reg1;
+					reg2 = img_t3[y+3]*filt[2];
+					res1 =reg04+reg8;
+					reg3 = img_t4[y+1]*filt[3];
+					reg002 = reg2 + reg3;
+					reg4 = img_t4[y+2]*filt[4];
+					res1 = res1 + reg01;
+					reg5 = img_t4[y+3]*filt[5];
+					reg012 = reg001+reg002;
+					reg003 =reg4+reg5;
+					reg6 =img_t5[y+1]*filt[6];
+					res[x+3][y]+=  res1;
+					reg7 = img_t5[y+2]*filt[7];
+					reg004 = reg6+reg7;
+					reg8 = img_t5[y+3]*filt[8];
+					////////////////////
+					reg0   = img_t3[y+2]*filt[0];
+					reg1   = img_t3[y+3]*filt[1];
+					reg01 = reg0+reg1;
+					reg034 = reg003 +reg004;
+					reg2   = img_t3[y+4]*filt[2];
+					reg3   = img_t4[y+2]*filt[3];
+					reg02 = reg2+reg3;
+					res100 = reg012+reg034;
+					reg4   = img_t4[y+3]*filt[4];
+					reg5   = img_t4[y+4]*filt[5];
+					reg01 = reg01 + reg02;
+					reg03 = reg4+reg5;
+					res[x+3][y+1]+=  res100 + reg8;
+					reg6  = img_t5[y+2]*filt[6];
+					reg7  = img_t5[y+3]*filt[7];
+					reg04= reg6+reg7;
+					reg8  = img_t5[y+4]*filt[8];
+					////////////////////////
+					reg0 = img_t3[y+3]*filt[0];
+					reg01 = reg01+reg03;
+					reg1 = img_t3[y+4]*filt[1];
+					reg001 = reg0 +reg1;
+					reg2 = img_t3[y+5]*filt[2];
+					res1 =reg04+reg8;
+					reg3 = img_t4[y+3]*filt[3];
+					reg002 = reg2 + reg3;
+					reg4 = img_t4[y+4]*filt[4];
+					res1 = res1 + reg01;
+					reg5 = img_t4[y+5]*filt[5];
+					reg012 = reg001+reg002;
+					reg003 =reg4+reg5;
+					reg6 =img_t5[y+3]*filt[6];
+					res[x+3][y+2]+=  res1;
+					reg7 = img_t5[y+4]*filt[7];
+					reg004 = reg6+reg7;
+					reg8 = img_t5[y+5]*filt[8];
+					////////////////////////////////////////////////////////////////////////////////// 4 more unrolled
+					y_t=y+4;
+					reg0   = img_t3[y+4]*filt[0];
+					reg1   = img_t3[y+5]*filt[1];
+					reg034 = reg003 +reg004;//
+					reg01 = reg0+reg1;
+					reg2   = img_t3[y_t+2]*filt[2];
+					reg3   = img_t4[y_t]*filt[3];
+					reg02 = reg2+reg3;
+					res100 = reg012+reg034;//
+					reg4   = img_t4[y_t+1]*filt[4];
+					reg5   = img_t4[y_t+2]*filt[5];
+					reg01 = reg01 + reg02;
+					reg03 = reg4+reg5;
+					res[x+3][y+3]+=  res100 + reg8;//
+					reg6  = img_t5[y_t]*filt[6];
+					reg7  = img_t5[y_t+1]*filt[7];
+					reg04= reg6+reg7;
+					reg8  = img_t5[y_t+2]*filt[8];
+					////////////////////////////////
+					reg0 = img_t3[y_t+1]*filt[0];
+					reg01 = reg01+reg03;
+					reg1 = img_t3[y_t+2]*filt[1];
+					reg001 = reg0 +reg1;
+					reg2 = img_t3[y_t+3]*filt[2];
+					res1 =reg04+reg8;
+					reg3 = img_t4[y_t+1]*filt[3];
+					reg002 = reg2 + reg3;
+					reg4 = img_t4[y_t+2]*filt[4];
+					res1 = res1 + reg01;
+					reg5 = img_t4[y_t+3]*filt[5];
+					reg012 = reg001+reg002;
+					reg003 =reg4+reg5;
+					reg6 =img_t5[y_t+1]*filt[6];
+					res[x+3][y_t]+=  res1;
+					reg7 = img_t5[y_t+2]*filt[7];
+					reg004 = reg6+reg7;
+					reg8 = img_t5[y_t+3]*filt[8];
+					////////////////////
+					reg0   = img_t3[y_t+2]*filt[0];
+					reg1   = img_t3[y_t+3]*filt[1];
+					reg01 = reg0+reg1;
+					reg034 = reg003 +reg004;
+					reg2   = img_t3[y_t+4]*filt[2];
+					reg3   = img_t4[y_t+2]*filt[3];
+					reg02 = reg2+reg3;
+					res100 = reg012+reg034;
+					reg4   = img_t4[y_t+3]*filt[4];
+					reg5   = img_t4[y_t+4]*filt[5];
+					reg01 = reg01 + reg02;
+					reg03 = reg4+reg5;
+					res[x+3][y_t+1]+=  res100 + reg8;
+					reg6  = img_t5[y_t+2]*filt[6];
+					reg7  = img_t5[y_t+3]*filt[7];
+					reg04= reg6+reg7;
+					reg8  = img_t5[y_t+4]*filt[8];
+					////////////////////////
+					reg0 = img_t3[y_t+3]*filt[0];
+					reg01 = reg01+reg03;
+					reg1 = img_t3[y_t+4]*filt[1];
+					reg001 = reg0 +reg1;
+					reg2 = img_t3[y_t+5]*filt[2];
+					res1 =reg04+reg8;
+					reg3 = img_t4[y_t+3]*filt[3];
+					reg002 = reg2 + reg3;
+					reg4 = img_t4[y_t+4]*filt[4];
+					res1 = res1 + reg01;
+					reg5 = img_t4[y_t+5]*filt[5];
+					reg012 = reg001+reg002;
+					reg003 =reg4+reg5;
+					reg6 =img_t5[y_t+3]*filt[6];
+					res[x+3][y_t+2]+=  res1;
+					reg7 = img_t5[y_t+4]*filt[7];
+					reg004 = reg6+reg7;
+					reg8 = img_t5[y_t+5]*filt[8];
+					////////////////////
+					reg034 = reg003 +reg004;
+					res100 = reg012+reg034;
+					res[x+3][y_t+3]+=  res100 + reg8;
 				}
 				
 				//Shift up : LB2-->LB1 , LB3-->LB2,
 				//Unrolled 2 times
 				for(int y=1; y<(dim_t-1); y+=2)
 				{
-#pragma HLS loop_tripcount min=32 max=32
+#pragma HLS loop_tripcount min=16 max=16
 #pragma HLS pipeline
-					img_t0[y] = img_t2[y];//LB2-->LB1
-					img_t1[y] = img_t3[y];//LB3-->LB2
-					img_t0[y+1] = img_t2[y+1];
-					img_t1[y+1] = img_t3[y+1];
+					img_t0[y] = img_t4[y];//LB2-->LB1
+					img_t1[y] = img_t5[y];//LB3-->LB2
+					img_t0[y+1] = img_t4[y+1];
+					img_t1[y+1] = img_t5[y+1];
 				}
 			}
 			//LAST ITERATION, the shift ups for 1st and 2nd rows are completed above
 			for(int y=1; y<(dim_t-1); y++)
 #pragma HLS loop_tripcount min=32 max=32
 #pragma HLS pipeline
-			{
 				img_t2[y]=image.read();
-				img_t3[y] = 0;//the last line of the input image must consists of zeros(zero padding==1)#todo:replaec img_t3 with zeros in that llast iter
+
+			for(int y=1; y<(dim_t-1); y++)
+#pragma HLS loop_tripcount min=32 max=32
+#pragma HLS pipeline
+				img_t3[y]=image.read();
+
+			for(int y=1; y<(dim_t-1); y++)
+#pragma HLS loop_tripcount min=32 max=32
+#pragma HLS pipeline
+			{
+				img_t4[y]=image.read();
+				img_t5[y] = 0;//the last line of the input image must consists of zeros(zero padding==1)#todo:replaec img_t3 with zeros in that llast iter
 			}
 
 			for(int y=0; y<o_dim; y+=8)
 			{
 #pragma HLS loop_tripcount min=4 max=4
 #pragma HLS pipeline
-
 				reg0   = img_t0[y]*filt[0];
 				reg1   = img_t0[y+1]*filt[1];
 				reg01 = reg0+reg1;
@@ -511,7 +850,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
 				reg6 =img_t2[y+1]*filt[6];
-				res[o_dim-2][y]+=  res1;
+				res[o_dim-4][y]+=  res1;
 				reg7 = img_t2[y+2]*filt[7];
 				reg004 = reg6+reg7;
 				reg8 = img_t2[y+3]*filt[8];
@@ -528,7 +867,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg5   = img_t1[y+4]*filt[5];
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
-				res[o_dim-2][y+1]+=  res100 + reg8;
+				res[o_dim-4][y+1]+=  res100 + reg8;
 				reg6  = img_t2[y+2]*filt[6];
 				reg7  = img_t2[y+3]*filt[7];
 				reg04= reg6+reg7;
@@ -548,7 +887,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
 				reg6 =img_t2[y+3]*filt[6];
-				res[o_dim-2][y+2]+=  res1;
+				res[o_dim-4][y+2]+=  res1;
 				reg7 = img_t2[y+4]*filt[7];
 				reg004 = reg6+reg7;
 				reg8 = img_t2[y+5]*filt[8];
@@ -566,7 +905,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg5   = img_t1[y_t+2]*filt[5];
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
-				res[o_dim-2][y+3]+=  res100 + reg8;//
+				res[o_dim-4][y+3]+=  res100 + reg8;//
 				reg6  = img_t2[y_t]*filt[6];
 				reg7  = img_t2[y_t+1]*filt[7];
 				reg04= reg6+reg7;
@@ -586,7 +925,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
 				reg6 =img_t2[y_t+1]*filt[6];
-				res[o_dim-2][y_t]+=  res1;
+				res[o_dim-4][y_t]+=  res1;
 				reg7 = img_t2[y_t+2]*filt[7];
 				reg004 = reg6+reg7;
 				reg8 = img_t2[y_t+3]*filt[8];
@@ -603,7 +942,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg5   = img_t1[y_t+4]*filt[5];
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
-				res[o_dim-2][y_t+1]+=  res100 + reg8;
+				res[o_dim-4][y_t+1]+=  res100 + reg8;
 				reg6  = img_t2[y_t+2]*filt[6];
 				reg7  = img_t2[y_t+3]*filt[7];
 				reg04= reg6+reg7;
@@ -623,29 +962,29 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
 				reg6 =img_t2[y_t+3]*filt[6];
-				res[o_dim-2][y_t+2]+=  res1;
+				res[o_dim-4][y_t+2]+=  res1;
 				reg7 = img_t2[y_t+4]*filt[7];
 				reg004 = reg6+reg7;
 				reg8 = img_t2[y_t+5]*filt[8];
 				////////////////////
 				reg034 = reg003 +reg004;
 				res100 = reg012+reg034;
-				res[o_dim-2][y_t+3]+=  res100 + reg8;
-				//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+				res[o_dim-4][y_t+3]+=  res100 + reg8;
+				///////////////////////////////////////////////////////////////////  2/4   /////////////////////////////////////////////////
 
 				reg0   = img_t1[y]*filt[0];
 				reg1   = img_t1[y+1]*filt[1];
+				//reg034 = reg003 +reg004;       ///////PREVIOUS PART
 				reg01 = reg0+reg1;
-				reg034 = reg003 +reg004;			//PREVIOUS PART
 				reg2   = img_t1[y+2]*filt[2];
 				reg3   = img_t2[y]*filt[3];
 				reg02 = reg2+reg3;
-				res100 = reg012+reg034;				//PREVIOUS PART
+				//res100 = reg012+reg034;         ///////PREVIOUS PART
 				reg4   = img_t2[y+1]*filt[4];
 				reg5   = img_t2[y+2]*filt[5];
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
-				res[o_dim-2][y_t+3]+=  res100 + reg8; //PREVIOUS PART
+				//res[x][y_t+3]+=  res100 + reg8; ///////PREVIOUS PART
 				reg6  = img_t3[y]*filt[6];
 				reg7  = img_t3[y+1]*filt[7];
 				reg04= reg6+reg7;
@@ -665,7 +1004,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
 				reg6 =img_t3[y+1]*filt[6];
-				res[o_dim-1][y]+=  res1;
+				res[o_dim-3][y]+=  res1;
 				reg7 = img_t3[y+2]*filt[7];
 				reg004 = reg6+reg7;
 				reg8 = img_t3[y+3]*filt[8];
@@ -682,7 +1021,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg5   = img_t2[y+4]*filt[5];
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
-				res[o_dim-1][y+1]+=  res100 + reg8;
+				res[o_dim-3][y+1]+=  res100 + reg8;
 				reg6  = img_t3[y+2]*filt[6];
 				reg7  = img_t3[y+3]*filt[7];
 				reg04= reg6+reg7;
@@ -702,7 +1041,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
 				reg6 =img_t3[y+3]*filt[6];
-				res[o_dim-1][y+2]+=  res1;
+				res[o_dim-3][y+2]+=  res1;
 				reg7 = img_t3[y+4]*filt[7];
 				reg004 = reg6+reg7;
 				reg8 = img_t3[y+5]*filt[8];
@@ -720,7 +1059,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg5   = img_t2[y_t+2]*filt[5];
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
-				res[o_dim-1][y+3]+=  res100 + reg8;//
+				res[o_dim-3][y+3]+=  res100 + reg8;//
 				reg6  = img_t3[y_t]*filt[6];
 				reg7  = img_t3[y_t+1]*filt[7];
 				reg04= reg6+reg7;
@@ -740,7 +1079,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
 				reg6 =img_t3[y_t+1]*filt[6];
-				res[o_dim-1][y_t]+=  res1;
+				res[o_dim-3][y_t]+=  res1;
 				reg7 = img_t3[y_t+2]*filt[7];
 				reg004 = reg6+reg7;
 				reg8 = img_t3[y_t+3]*filt[8];
@@ -757,7 +1096,7 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg5   = img_t2[y_t+4]*filt[5];
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
-				res[o_dim-1][y_t+1]+=  res100 + reg8;
+				res[o_dim-3][y_t+1]+=  res100 + reg8;
 				reg6  = img_t3[y_t+2]*filt[6];
 				reg7  = img_t3[y_t+3]*filt[7];
 				reg04= reg6+reg7;
@@ -777,10 +1116,321 @@ void Conv(stream<float> &image, stream<float> &filter, stream<float> &bias, stre
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
 				reg6 =img_t3[y_t+3]*filt[6];
-				res[o_dim-1][y_t+2]+=  res1;
+				res[o_dim-3][y_t+2]+=  res1;
 				reg7 = img_t3[y_t+4]*filt[7];
 				reg004 = reg6+reg7;
 				reg8 = img_t3[y_t+5]*filt[8];
+				////////////////////
+				reg034 = reg003 +reg004;
+				res100 = reg012+reg034;
+				res[o_dim-3][y_t+3]+=  res100 + reg8;
+
+				//////////////////////////////////////////////////////////////////////   3/4  ////////////////////////////////////////////////////////
+
+				reg0   = img_t2[y]*filt[0];
+				reg1   = img_t2[y+1]*filt[1];
+				//reg034 = reg003 +reg004;       ///////PREVIOUS PART
+				reg01 = reg0+reg1;
+				reg2   = img_t2[y+2]*filt[2];
+				reg3   = img_t3[y]*filt[3];
+				reg02 = reg2+reg3;
+				//res100 = reg012+reg034;         ///////PREVIOUS PART
+				reg4   = img_t3[y+1]*filt[4];
+				reg5   = img_t3[y+2]*filt[5];
+				reg01 = reg01 + reg02;
+				reg03 = reg4+reg5;
+				//res[x][y_t+3]+=  res100 + reg8; ///////PREVIOUS PART
+				reg6  = img_t4[y]*filt[6];
+				reg7  = img_t4[y+1]*filt[7];
+				reg04= reg6+reg7;
+				reg8  = img_t4[y+2]*filt[8];
+				////////////////////////////////
+				reg0 = img_t2[y+1]*filt[0];
+				reg01 = reg01+reg03;
+				reg1 = img_t2[y+2]*filt[1];
+				reg001 = reg0 +reg1;
+				reg2 = img_t2[y+3]*filt[2];
+				res1 =reg04+reg8;
+				reg3 = img_t3[y+1]*filt[3];
+				reg002 = reg2 + reg3;
+				reg4 = img_t3[y+2]*filt[4];
+				res1 = res1 + reg01;
+				reg5 = img_t3[y+3]*filt[5];
+				reg012 = reg001+reg002;
+				reg003 =reg4+reg5;
+				reg6 =img_t4[y+1]*filt[6];
+				res[o_dim-2][y]+=  res1;
+				reg7 = img_t4[y+2]*filt[7];
+				reg004 = reg6+reg7;
+				reg8 = img_t4[y+3]*filt[8];
+				////////////////////
+				reg0   = img_t2[y+2]*filt[0];
+				reg1   = img_t2[y+3]*filt[1];
+				reg01 = reg0+reg1;
+				reg034 = reg003 +reg004;
+				reg2   = img_t2[y+4]*filt[2];
+				reg3   = img_t3[y+2]*filt[3];
+				reg02 = reg2+reg3;
+				res100 = reg012+reg034;
+				reg4   = img_t3[y+3]*filt[4];
+				reg5   = img_t3[y+4]*filt[5];
+				reg01 = reg01 + reg02;
+				reg03 = reg4+reg5;
+				res[o_dim-2][y+1]+=  res100 + reg8;
+				reg6  = img_t4[y+2]*filt[6];
+				reg7  = img_t4[y+3]*filt[7];
+				reg04= reg6+reg7;
+				reg8  = img_t4[y+4]*filt[8];
+				////////////////////////
+				reg0 = img_t2[y+3]*filt[0];
+				reg01 = reg01+reg03;
+				reg1 = img_t2[y+4]*filt[1];
+				reg001 = reg0 +reg1;
+				reg2 = img_t2[y+5]*filt[2];
+				res1 =reg04+reg8;
+				reg3 = img_t3[y+3]*filt[3];
+				reg002 = reg2 + reg3;
+				reg4 = img_t3[y+4]*filt[4];
+				res1 = res1 + reg01;
+				reg5 = img_t3[y+5]*filt[5];
+				reg012 = reg001+reg002;
+				reg003 =reg4+reg5;
+				reg6 =img_t4[y+3]*filt[6];
+				res[o_dim-2][y+2]+=  res1;
+				reg7 = img_t4[y+4]*filt[7];
+				reg004 = reg6+reg7;
+				reg8 = img_t4[y+5]*filt[8];
+				////////////////////////////////////////////////////////////////////////////////// 4 more unrolled
+				y_t=y+4;
+				reg0   = img_t2[y+4]*filt[0];
+				reg1   = img_t2[y+5]*filt[1];
+				reg034 = reg003 +reg004;//
+				reg01 = reg0+reg1;
+				reg2   = img_t2[y_t+2]*filt[2];
+				reg3   = img_t3[y_t]*filt[3];
+				reg02 = reg2+reg3;
+				res100 = reg012+reg034;//
+				reg4   = img_t3[y_t+1]*filt[4];
+				reg5   = img_t3[y_t+2]*filt[5];
+				reg01 = reg01 + reg02;
+				reg03 = reg4+reg5;
+				res[o_dim-2][y+3]+=  res100 + reg8;//
+				reg6  = img_t4[y_t]*filt[6];
+				reg7  = img_t4[y_t+1]*filt[7];
+				reg04= reg6+reg7;
+				reg8  = img_t4[y_t+2]*filt[8];
+				////////////////////////////////
+				reg0 = img_t2[y_t+1]*filt[0];
+				reg01 = reg01+reg03;
+				reg1 = img_t2[y_t+2]*filt[1];
+				reg001 = reg0 +reg1;
+				reg2 = img_t2[y_t+3]*filt[2];
+				res1 =reg04+reg8;
+				reg3 = img_t3[y_t+1]*filt[3];
+				reg002 = reg2 + reg3;
+				reg4 = img_t3[y_t+2]*filt[4];
+				res1 = res1 + reg01;
+				reg5 = img_t3[y_t+3]*filt[5];
+				reg012 = reg001+reg002;
+				reg003 =reg4+reg5;
+				reg6 =img_t4[y_t+1]*filt[6];
+				res[o_dim-2][y_t]+=  res1;
+				reg7 = img_t4[y_t+2]*filt[7];
+				reg004 = reg6+reg7;
+				reg8 = img_t4[y_t+3]*filt[8];
+				////////////////////
+				reg0   = img_t2[y_t+2]*filt[0];
+				reg1   = img_t2[y_t+3]*filt[1];
+				reg01 = reg0+reg1;
+				reg034 = reg003 +reg004;
+				reg2   = img_t2[y_t+4]*filt[2];
+				reg3   = img_t3[y_t+2]*filt[3];
+				reg02 = reg2+reg3;
+				res100 = reg012+reg034;
+				reg4   = img_t3[y_t+3]*filt[4];
+				reg5   = img_t3[y_t+4]*filt[5];
+				reg01 = reg01 + reg02;
+				reg03 = reg4+reg5;
+				res[o_dim-2][y_t+1]+=  res100 + reg8;
+				reg6  = img_t4[y_t+2]*filt[6];
+				reg7  = img_t4[y_t+3]*filt[7];
+				reg04= reg6+reg7;
+				reg8  = img_t4[y_t+4]*filt[8];
+				////////////////////////
+				reg0 = img_t2[y_t+3]*filt[0];
+				reg01 = reg01+reg03;
+				reg1 = img_t2[y_t+4]*filt[1];
+				reg001 = reg0 +reg1;
+				reg2 = img_t2[y_t+5]*filt[2];
+				res1 =reg04+reg8;
+				reg3 = img_t3[y_t+3]*filt[3];
+				reg002 = reg2 + reg3;
+				reg4 = img_t3[y_t+4]*filt[4];
+				res1 = res1 + reg01;
+				reg5 = img_t3[y_t+5]*filt[5];
+				reg012 = reg001+reg002;
+				reg003 =reg4+reg5;
+				reg6 =img_t4[y_t+3]*filt[6];
+				res[o_dim-2][y_t+2]+=  res1;
+				reg7 = img_t4[y_t+4]*filt[7];
+				reg004 = reg6+reg7;
+				reg8 = img_t4[y_t+5]*filt[8];
+				////////////////////
+				reg034 = reg003 +reg004;
+				res100 = reg012+reg034;
+				res[o_dim-2][y_t+3]+=  res100 + reg8;
+
+				/////////////////////////////////////////////////////////////////    4/4      //////////////////////////////////////////////////////////
+
+
+				reg0   = img_t3[y]*filt[0];
+				reg1   = img_t3[y+1]*filt[1];
+				//reg034 = reg003 +reg004;       ///////PREVIOUS PART
+				reg01 = reg0+reg1;
+				reg2   = img_t3[y+2]*filt[2];
+				reg3   = img_t4[y]*filt[3];
+				reg02 = reg2+reg3;
+				//res100 = reg012+reg034;         ///////PREVIOUS PART
+				reg4   = img_t4[y+1]*filt[4];
+				reg5   = img_t4[y+2]*filt[5];
+				reg01 = reg01 + reg02;
+				reg03 = reg4+reg5;
+				//res[x][y_t+3]+=  res100 + reg8; ///////PREVIOUS PART
+				reg6  = img_t5[y]*filt[6];
+				reg7  = img_t5[y+1]*filt[7];
+				reg04= reg6+reg7;
+				reg8  = img_t5[y+2]*filt[8];
+				////////////////////////////////
+				reg0 = img_t3[y+1]*filt[0];
+				reg01 = reg01+reg03;
+				reg1 = img_t3[y+2]*filt[1];
+				reg001 = reg0 +reg1;
+				reg2 = img_t3[y+3]*filt[2];
+				res1 =reg04+reg8;
+				reg3 = img_t4[y+1]*filt[3];
+				reg002 = reg2 + reg3;
+				reg4 = img_t4[y+2]*filt[4];
+				res1 = res1 + reg01;
+				reg5 = img_t4[y+3]*filt[5];
+				reg012 = reg001+reg002;
+				reg003 =reg4+reg5;
+				reg6 =img_t5[y+1]*filt[6];
+				res[o_dim-1][y]+=  res1;
+				reg7 = img_t5[y+2]*filt[7];
+				reg004 = reg6+reg7;
+				reg8 = img_t5[y+3]*filt[8];
+				////////////////////
+				reg0   = img_t3[y+2]*filt[0];
+				reg1   = img_t3[y+3]*filt[1];
+				reg01 = reg0+reg1;
+				reg034 = reg003 +reg004;
+				reg2   = img_t3[y+4]*filt[2];
+				reg3   = img_t4[y+2]*filt[3];
+				reg02 = reg2+reg3;
+				res100 = reg012+reg034;
+				reg4   = img_t4[y+3]*filt[4];
+				reg5   = img_t4[y+4]*filt[5];
+				reg01 = reg01 + reg02;
+				reg03 = reg4+reg5;
+				res[o_dim-1][y+1]+=  res100 + reg8;
+				reg6  = img_t5[y+2]*filt[6];
+				reg7  = img_t5[y+3]*filt[7];
+				reg04= reg6+reg7;
+				reg8  = img_t5[y+4]*filt[8];
+				////////////////////////
+				reg0 = img_t3[y+3]*filt[0];
+				reg01 = reg01+reg03;
+				reg1 = img_t3[y+4]*filt[1];
+				reg001 = reg0 +reg1;
+				reg2 = img_t3[y+5]*filt[2];
+				res1 =reg04+reg8;
+				reg3 = img_t4[y+3]*filt[3];
+				reg002 = reg2 + reg3;
+				reg4 = img_t4[y+4]*filt[4];
+				res1 = res1 + reg01;
+				reg5 = img_t4[y+5]*filt[5];
+				reg012 = reg001+reg002;
+				reg003 =reg4+reg5;
+				reg6 =img_t5[y+3]*filt[6];
+				res[o_dim-1][y+2]+=  res1;
+				reg7 = img_t5[y+4]*filt[7];
+				reg004 = reg6+reg7;
+				reg8 = img_t5[y+5]*filt[8];
+				////////////////////////////////////////////////////////////////////////////////// 4 more unrolled
+				y_t=y+4;
+				reg0   = img_t3[y+4]*filt[0];
+				reg1   = img_t3[y+5]*filt[1];
+				reg034 = reg003 +reg004;//
+				reg01 = reg0+reg1;
+				reg2   = img_t3[y_t+2]*filt[2];
+				reg3   = img_t4[y_t]*filt[3];
+				reg02 = reg2+reg3;
+				res100 = reg012+reg034;//
+				reg4   = img_t4[y_t+1]*filt[4];
+				reg5   = img_t4[y_t+2]*filt[5];
+				reg01 = reg01 + reg02;
+				reg03 = reg4+reg5;
+				res[o_dim-1][y+3]+=  res100 + reg8;//
+				reg6  = img_t5[y_t]*filt[6];
+				reg7  = img_t5[y_t+1]*filt[7];
+				reg04= reg6+reg7;
+				reg8  = img_t5[y_t+2]*filt[8];
+				////////////////////////////////
+				reg0 = img_t3[y_t+1]*filt[0];
+				reg01 = reg01+reg03;
+				reg1 = img_t3[y_t+2]*filt[1];
+				reg001 = reg0 +reg1;
+				reg2 = img_t3[y_t+3]*filt[2];
+				res1 =reg04+reg8;
+				reg3 = img_t4[y_t+1]*filt[3];
+				reg002 = reg2 + reg3;
+				reg4 = img_t4[y_t+2]*filt[4];
+				res1 = res1 + reg01;
+				reg5 = img_t4[y_t+3]*filt[5];
+				reg012 = reg001+reg002;
+				reg003 =reg4+reg5;
+				reg6 =img_t5[y_t+1]*filt[6];
+				res[o_dim-1][y_t]+=  res1;
+				reg7 = img_t5[y_t+2]*filt[7];
+				reg004 = reg6+reg7;
+				reg8 = img_t5[y_t+3]*filt[8];
+				////////////////////
+				reg0   = img_t3[y_t+2]*filt[0];
+				reg1   = img_t3[y_t+3]*filt[1];
+				reg01 = reg0+reg1;
+				reg034 = reg003 +reg004;
+				reg2   = img_t3[y_t+4]*filt[2];
+				reg3   = img_t4[y_t+2]*filt[3];
+				reg02 = reg2+reg3;
+				res100 = reg012+reg034;
+				reg4   = img_t4[y_t+3]*filt[4];
+				reg5   = img_t4[y_t+4]*filt[5];
+				reg01 = reg01 + reg02;
+				reg03 = reg4+reg5;
+				res[o_dim-1][y_t+1]+=  res100 + reg8;
+				reg6  = img_t5[y_t+2]*filt[6];
+				reg7  = img_t5[y_t+3]*filt[7];
+				reg04= reg6+reg7;
+				reg8  = img_t5[y_t+4]*filt[8];
+				////////////////////////
+				reg0 = img_t3[y_t+3]*filt[0];
+				reg01 = reg01+reg03;
+				reg1 = img_t3[y_t+4]*filt[1];
+				reg001 = reg0 +reg1;
+				reg2 = img_t3[y_t+5]*filt[2];
+				res1 =reg04+reg8;
+				reg3 = img_t4[y_t+3]*filt[3];
+				reg002 = reg2 + reg3;
+				reg4 = img_t4[y_t+4]*filt[4];
+				res1 = res1 + reg01;
+				reg5 = img_t4[y_t+5]*filt[5];
+				reg012 = reg001+reg002;
+				reg003 =reg4+reg5;
+				reg6 =img_t5[y_t+3]*filt[6];
+				res[o_dim-1][y_t+2]+=  res1;
+				reg7 = img_t5[y_t+4]*filt[7];
+				reg004 = reg6+reg7;
+				reg8 = img_t5[y_t+5]*filt[8];
 				////////////////////
 				reg034 = reg003 +reg004;
 				res100 = reg012+reg034;
