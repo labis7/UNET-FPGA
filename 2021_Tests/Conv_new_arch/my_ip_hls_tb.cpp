@@ -59,9 +59,9 @@ int main() {
 
 	stream<data> slaveIn("slaveIn");
 	//stream<data> masterOut("masterOut");
-	stream<float> image("Image");
-	stream<float> filter("Filter");
-	stream<float> result("Result");
+	stream<data_t> image("Image");
+	stream<data_t> filter("Filter");
+	stream<data_t> result("Result");
 	stream<float> bias("Bias");
 
 	data dataIn ;
@@ -82,7 +82,7 @@ int main() {
 			{
 				for(int j=0;j<F_DIM;j++)
 				{
-					filter.write(filt[k*ch*F_DIM*F_DIM+ c*F_DIM*F_DIM + i*F_DIM+j]);
+					filter.write(data_t(filt[k*ch*F_DIM*F_DIM+ c*F_DIM*F_DIM + i*F_DIM+j]));
 				}
 			}
 		}
@@ -94,7 +94,7 @@ int main() {
 			{
 				for(int j=0;j<dim;j++)
 				{
-					image.write(img[c*dim*dim+i*dim+j]);
+					image.write(data_t(img[c*dim*dim+i*dim+j]));
 				}
 			}
 		}
@@ -134,7 +134,7 @@ int main() {
 		{
 			for(int j=0;j<o_dim;j++)
 			{
-				result.read(res[c][i][j]);
+				res[c][i][j] = float(result.read());
 				printf("%f\t", res[c][i][j]);
 			}
 			printf("\n");

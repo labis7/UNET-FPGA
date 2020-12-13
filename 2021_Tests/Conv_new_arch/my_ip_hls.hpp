@@ -2,6 +2,7 @@
 #include <ap_int.h>
 #include <iostream>
 #include <stdint.h>
+#include <ap_fixed.h>
 
 using namespace hls;
 
@@ -19,6 +20,9 @@ struct data{
 	//int   f_num;
 	//int   f_dim;
 };
+
+typedef ap_fixed<32,20> data_t;
+
 
 
 typedef ap_uint<32> uint32;
@@ -38,5 +42,5 @@ void rules(uint32 rule1,uint32 rule_2);
 void get_rules(uint32 &tmp,uint32 &tmp1);
 */
 
-void Conv(stream<float> &image, stream<float> &filter,stream<float> &bias, stream<float> &result, data &slaveIn);
+void Conv(stream<data_t> &image, stream<data_t> &filter,stream<float> &bias, stream<data_t> &result, data &slaveIn);
 //void my_ip_hls();
