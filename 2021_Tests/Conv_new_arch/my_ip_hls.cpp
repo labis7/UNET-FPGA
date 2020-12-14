@@ -856,7 +856,7 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 #pragma HLS pipeline
 			{
 				img_t4[y]=image.read();
-				img_t5[y] = 0;//the last line of the input image must consists of zeros(zero padding==1)#todo:replaec img_t3 with zeros in that llast iter
+				img_t5[y] = 0;//the last line of the input image must consists of zeros(zero padding==1)
 			}
 
 			for(int y=0; y<o_dim; y+=8)
@@ -1338,10 +1338,10 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
 				//ress[x][y_t+3]+=  res100 + reg8; ///////PREVIOUS PART
-				reg6  = img_t5[y]*filt[6];
-				reg7  = img_t5[y+1]*filt[7];
+				reg6  = 0;//img_t5[y]*filt[6];
+				reg7  = 0;//img_t5[y+1]*filt[7];
 				reg04= reg6+reg7;
-				reg8  = img_t5[y+2]*filt[8];
+				reg8  =0;// img_t5[y+2]*filt[8];
 				////////////////////////////////
 				reg0 = img_t3[y+1]*filt[0];
 				reg01 = reg01+reg03;
@@ -1356,11 +1356,11 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 				reg5 = img_t4[y+3]*filt[5];
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
-				reg6 =img_t5[y+1]*filt[6];
+				reg6 =0;//img_t5[y+1]*filt[6];
 				ress[(o_dim/2)-1][y]+=  res1;
-				reg7 = img_t5[y+2]*filt[7];
+				reg7 = 0;//img_t5[y+2]*filt[7];
 				reg004 = reg6+reg7;
-				reg8 = img_t5[y+3]*filt[8];
+				reg8 = 0;//img_t5[y+3]*filt[8];
 				////////////////////
 				reg0   = img_t3[y+2]*filt[0];
 				reg1   = img_t3[y+3]*filt[1];
@@ -1375,10 +1375,10 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
 				ress[(o_dim/2)-1][y+1]+=  res100 + reg8;
-				reg6  = img_t5[y+2]*filt[6];
-				reg7  = img_t5[y+3]*filt[7];
+				reg6  = 0;//img_t5[y+2]*filt[6];
+				reg7  = 0;//img_t5[y+3]*filt[7];
 				reg04= reg6+reg7;
-				reg8  = img_t5[y+4]*filt[8];
+				reg8  = 0;//img_t5[y+4]*filt[8];
 				////////////////////////
 				reg0 = img_t3[y+3]*filt[0];
 				reg01 = reg01+reg03;
@@ -1393,11 +1393,11 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 				reg5 = img_t4[y+5]*filt[5];
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
-				reg6 =img_t5[y+3]*filt[6];
+				reg6 =0;//img_t5[y+3]*filt[6];
 				ress[(o_dim/2)-1][y+2]+=  res1;
-				reg7 = img_t5[y+4]*filt[7];
+				reg7 = 0;//img_t5[y+4]*filt[7];
 				reg004 = reg6+reg7;
-				reg8 = img_t5[y+5]*filt[8];
+				reg8 = 0;//img_t5[y+5]*filt[8];
 				////////////////////////////////////////////////////////////////////////////////// 4 more unrolled
 				y_t=y+4;
 				reg0   = img_t3[y+4]*filt[0];
@@ -1413,10 +1413,10 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
 				ress[(o_dim/2)-1][y+3]+=  res100 + reg8;//
-				reg6  = img_t5[y_t]*filt[6];
-				reg7  = img_t5[y_t+1]*filt[7];
+				reg6  = 0;//img_t5[y_t]*filt[6];
+				reg7  = 0;//img_t5[y_t+1]*filt[7];
 				reg04= reg6+reg7;
-				reg8  = img_t5[y_t+2]*filt[8];
+				reg8  = 0;//img_t5[y_t+2]*filt[8];
 				////////////////////////////////
 				reg0 = img_t3[y_t+1]*filt[0];
 				reg01 = reg01+reg03;
@@ -1431,11 +1431,11 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 				reg5 = img_t4[y_t+3]*filt[5];
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
-				reg6 =img_t5[y_t+1]*filt[6];
+				reg6 =0;//img_t5[y_t+1]*filt[6];
 				ress[(o_dim/2)-1][y_t]+=  res1;
-				reg7 = img_t5[y_t+2]*filt[7];
+				reg7 = 0;//img_t5[y_t+2]*filt[7];
 				reg004 = reg6+reg7;
-				reg8 = img_t5[y_t+3]*filt[8];
+				reg8 = 0;//img_t5[y_t+3]*filt[8];
 				////////////////////
 				reg0   = img_t3[y_t+2]*filt[0];
 				reg1   = img_t3[y_t+3]*filt[1];
@@ -1450,10 +1450,10 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 				reg01 = reg01 + reg02;
 				reg03 = reg4+reg5;
 				ress[(o_dim/2)-1][y_t+1]+=  res100 + reg8;
-				reg6  = img_t5[y_t+2]*filt[6];
-				reg7  = img_t5[y_t+3]*filt[7];
+				reg6  = 0;//img_t5[y_t+2]*filt[6];
+				reg7  = 0;//img_t5[y_t+3]*filt[7];
 				reg04= reg6+reg7;
-				reg8  = img_t5[y_t+4]*filt[8];
+				reg8  = 0;//img_t5[y_t+4]*filt[8];
 				////////////////////////
 				reg0 = img_t3[y_t+3]*filt[0];
 				reg01 = reg01+reg03;
@@ -1468,11 +1468,11 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 				reg5 = img_t4[y_t+5]*filt[5];
 				reg012 = reg001+reg002;
 				reg003 =reg4+reg5;
-				reg6 =img_t5[y_t+3]*filt[6];
+				reg6 =0;//img_t5[y_t+3]*filt[6];
 				ress[(o_dim/2)-1][y_t+2]+=  res1;
-				reg7 = img_t5[y_t+4]*filt[7];
+				reg7 = 0;//img_t5[y_t+4]*filt[7];
 				reg004 = reg6+reg7;
-				reg8 = img_t5[y_t+5]*filt[8];
+				reg8 = 0;//img_t5[y_t+5]*filt[8];
 				////////////////////
 				reg034 = reg003 +reg004;
 				res100 = reg012+reg034;
@@ -1508,7 +1508,7 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 			{
 #pragma HLS loop_tripcount min=16 max=16
 				data_t tmp=res[x+1][y];
-				data_t tmp1=res[x][y+1];
+				data_t tmp1=res[x+1][y+1];
 				if(tmp<=0) 			// Integraded ReLu activation function
 					result.write(0);
 				else
@@ -1538,7 +1538,7 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 			{
 #pragma HLS loop_tripcount min=16 max=16
 				data_t tmp=ress[x+1][y];
-				data_t tmp1=ress[x][y+1];
+				data_t tmp1=ress[x+1][y+1];
 				if(tmp<=0) 			// Integraded ReLu activation function
 					result.write(0);
 				else
