@@ -1,4 +1,4 @@
- #include <hls_stream.h>
+#include <hls_stream.h>
 #include <ap_int.h>
 #include <iostream>
 #include <stdint.h>
@@ -6,19 +6,28 @@
 
 using namespace hls;
 
+struct data{
+	int ch;
+	int dim;
+	int f_num;
+
+
+
+	//int f_dim; //always 3
+	//float *filter;
+	//int  dim;
+	//int   ch;
+	//int   f_num;
+	//int   f_dim;
+};
+
+typedef ap_fixed<32,20> data_t;
 
 typedef ap_uint<32> uint32;
 typedef ap_uint<1> uint1;
 typedef ap_uint<2> uint2;
 
 #define F_DIM 2
-
-struct data{
-	int ch;
-	int dim;
-};
-
-typedef ap_fixed<32,20> data_t;
 
 
 /*
@@ -31,5 +40,5 @@ void rules(uint32 rule1,uint32 rule_2);
 void get_rules(uint32 &tmp,uint32 &tmp1);
 */
 
-void my_ip_hls(stream<data_t> &image, stream<data_t> &filter, data &slaveIn);
+void Tconv(stream<data_t> &image, stream<data_t> &filter,stream<float> &bias, stream<data_t> &result, data &slaveIn);
 //void my_ip_hls();

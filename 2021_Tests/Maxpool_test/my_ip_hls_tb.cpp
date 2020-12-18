@@ -36,11 +36,11 @@ int main() {
 		printf("\n");
 	}
 
-	struct_d data_in;
+	//struct_d data_in;
 
 	//stream<float> image("Image");
-	stream<struct_d> image("Image");
-	stream<float> result("Result");
+	stream<data_t> image("Image");
+	stream<data_t> result("Result");
 
 	data dataIn;
 
@@ -55,9 +55,10 @@ int main() {
 		{
 			for(int j=0;j<dim;j+=2)
 			{
-				data_in.d1 = (img[c*dim*dim+i*dim+j]);
-				data_in.d2 = (img[c*dim*dim+i*dim+j+1]);
-				image.write(data_in);
+				//data_in.d1 = (img[c*dim*dim+i*dim+j]);
+				//data_in.d2 = (img[c*dim*dim+i*dim+j+1]);
+				image.write(data_t(img[c*dim*dim+i*dim+j]));
+				image.write(data_t(img[c*dim*dim+i*dim+j+1]));
 			}
 		}
 	}
@@ -81,7 +82,7 @@ int main() {
 		{
 			for(int j=0;j<o_dim;j++)
 			{
-				res[c*o_dim*o_dim + i*o_dim*+j]=result.read();
+				res[c*o_dim*o_dim + i*o_dim*+j]=float(result.read());
 				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j]);
 
 			}

@@ -1,12 +1,12 @@
 #include "my_ip_hls.hpp"
 
-static float img_t0[256]; //Max resolution supported
-static float img_t1[256]; //
+static data_t img_t0[256]; //Max resolution supported
+static data_t img_t1[256]; //
 
 //static float b[10];
 
 
-void my_ip_hls(stream<struct_d> &image,stream<float> &result,data &slaveIn) {
+void my_ip_hls(stream<data_t> &image,stream<data_t> &result,data &slaveIn) {
 //Axi lite Inteface
 #pragma HLS INTERFACE s_axilite port=slaveIn bundle=CTRL_BUS
 #pragma HLS INTERFACE s_axilite port=return bundle=CRTL_BUS
@@ -28,9 +28,9 @@ void my_ip_hls(stream<struct_d> &image,stream<float> &result,data &slaveIn) {
 	//setup local settings
 	int s =2;
 	int o_dim=dim/2;
-	float max= -10000; // -infinity
+	data_t max= -10000; // -infinity
 	
-	struct_d str_in ;
+
 	//For each input channel, apply maxpool
 	for(int i=0; i<ch; i++)
 	{
@@ -42,20 +42,19 @@ void my_ip_hls(stream<struct_d> &image,stream<float> &result,data &slaveIn) {
 #pragma HLS loop_tripcount min=128 max=128
 			for (int z=0; z<dim; z+=2)
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=256 max=256
+#pragma HLS loop_tripcount min=128 max=128
 			{
-				str_in=image.read();
+				//str_in=image.read();
 				//printf("\n %f", float(str_in.d1));
-				img_t0[z]=(str_in.d1); //LB1
-				img_t0[z+1]=(str_in.d2);
+				img_t0[z]= image.read(); //(str_in.d1); //LB1
+				img_t0[z+1]= image.read();//(str_in.d2);
 			}
 			for (int z=0; z<dim; z+=2)
 #pragma HLS pipeline
-#pragma HLS loop_tripcount min=256 max=256
+#pragma HLS loop_tripcount min=128 max=128
 			{
-				str_in=image.read();
-				img_t1[z]=(str_in.d1); //LB2
-				img_t1[z+1]=(str_in.d2);
+				img_t1[z]= image.read(); //(str_in.d1); //LB1
+				img_t1[z+1]= image.read();//(str_in.d2);
 			}
 			for (int y = 0; y<o_dim; y++)
 			{
