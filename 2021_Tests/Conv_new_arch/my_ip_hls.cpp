@@ -841,22 +841,30 @@ void Conv(stream<data_t> &image, stream<data_t> &filter, stream<float> &bias, st
 				}
 			}
 			//LAST ITERATION, the shift ups for 1st and 2nd rows are completed above
-			for(int y=1; y<(dim_t-1); y++)
-#pragma HLS loop_tripcount min=32 max=32
+			for(int y=1; y<(dim_t-1); y+=2)
+#pragma HLS loop_tripcount min=16 max=16
 #pragma HLS pipeline
+			{
 				img_t2[y]=image.read();
+				img_t2[y+1]=image.read();
+			}
 
-			for(int y=1; y<(dim_t-1); y++)
-#pragma HLS loop_tripcount min=32 max=32
+			for(int y=1; y<(dim_t-1); y+=2)
+#pragma HLS loop_tripcount min=16 max=16
 #pragma HLS pipeline
+			{
 				img_t3[y]=image.read();
+				img_t3[y+1]=image.read();
+			}
 
-			for(int y=1; y<(dim_t-1); y++)
-#pragma HLS loop_tripcount min=32 max=32
+			for(int y=1; y<(dim_t-1); y+=2)
+#pragma HLS loop_tripcount min=16 max=16
 #pragma HLS pipeline
 			{
 				img_t4[y]=image.read();
+				img_t4[y+1]=image.read();
 				img_t5[y] = 0;//the last line of the input image must consists of zeros(zero padding==1)
+				img_t5[y+1] = 0;//the last line of the input image must consists of zeros(zero padding==1)
 			}
 
 			for(int y=0; y<o_dim; y+=8)
