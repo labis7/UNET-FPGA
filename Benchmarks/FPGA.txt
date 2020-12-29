@@ -99,3 +99,34 @@ Layer : 9.1 , Time: 499.0144 ms.
 Layer : 9.2 , Time: 255.2384 ms. 
 
 Overall: 6.440 sec
+
+============================================================  N E W    A R C H I T E C T U R E   ==============================================================
+========================== 256x256 =========================
+Layer : 1.1 , Time: 8.910 ms
+Layer : 1.2 , Time: 23.281 ms
+Maxpool : 1 , Time: 1.311 ms
+Layer : 2.1 , Time: 12.496 ms
+Layer : 2.2 , Time: 21.039 ms
+Maxpool : 2 , Time: 0.655 ms
+Layer : 3.1 , Time: 11.255 ms
+Layer : 3.2 , Time: 20.552 ms
+Maxpool : 3 , Time: 0.328 ms
+Layer : 4.1 , Time: 11.860 ms
+Layer : 4.2 , Time: 22.714 ms
+Maxpool : 4 , Time: 0.164 ms
+Layer : 5.1 , Time: 15.098 ms
+Layer : 5.2 , Time: 29.679 ms
+TConv : 6 , Time:  35.443 ms
+Layer : 6.1 , Time: 44.423 ms
+Layer : 6.2 , Time: 22.371 ms
+TConv : 7 , Time:  23.809 ms
+Layer : 7.1 , Time: 38.056 ms
+Layer : 7.2 , Time: 20.229 ms
+TConv : 8 , Time:  19.098 ms
+Layer : 8.1 , Time: 38.124 ms
+Layer : 8.2 , Time: 20.844 ms
+TConv : 9 , Time:   18.739 ms
+Layer : 9.1 , Time: 40.460 ms
+Layer : 9.2 , Time:  22.352ms
+
+overall (Conv: 423.74) , (Tconv: 97.089), (maxpool: 2.458 )  = 523.287 ms
