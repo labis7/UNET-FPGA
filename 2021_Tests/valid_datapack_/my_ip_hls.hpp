@@ -1,8 +1,7 @@
- #include <hls_stream.h>
+#include <hls_stream.h>
 #include <ap_int.h>
 #include <iostream>
 #include <stdint.h>
-#include <ap_fixed.h>
 
 using namespace hls;
 
@@ -19,6 +18,36 @@ struct data{
 };
 
 typedef ap_fixed<32,20> data_t;
+struct data_d{
+	data_t v1;
+	data_t v2;
+	data_t v3;
+	data_t v4;
+	data_t v5;
+	data_t v6;
+	data_t v7;
+	data_t v8;
+
+	data_t v12;
+	data_t v22;
+	data_t v32;
+	data_t v42;
+	data_t v52;
+	data_t v62;
+	data_t v72;
+	data_t v82;
+};
+struct data_o{
+	data_t v1;
+	data_t v2;
+	data_t v3;
+	data_t v4;
+	data_t v5;
+	data_t v6;
+	data_t v7;
+	data_t v8;
+
+};
 
 
 /*
@@ -31,5 +60,5 @@ void rules(uint32 rule1,uint32 rule_2);
 void get_rules(uint32 &tmp,uint32 &tmp1);
 */
 
-void my_ip_hls(stream<data_t> &image, stream<data_t> &filter, data &slaveIn);
+void my_ip_hls(stream<data_d> &image, stream<data_o> &filter, data &slaveIn);
 //void my_ip_hls();

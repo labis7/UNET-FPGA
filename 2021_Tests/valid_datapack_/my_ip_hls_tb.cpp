@@ -36,11 +36,10 @@ int main() {
 		printf("\n");
 	}
 
-	//struct_d data_in;
-
-	//stream<float> image("Image");
-	stream<data_t> image("Image");
-	stream<data_t> result("Result");
+	data_d data_in;
+	data_o data_out;
+	stream<data_d> image("Image");
+	stream<data_o> result("Result");
 
 	data dataIn;
 
@@ -53,12 +52,27 @@ int main() {
 	{
 		for(int i=0;i<dim;i++)
 		{
-			for(int j=0;j<dim;j+=2)
+			for(int j=0;j<dim;j+=16)
 			{
-				//data_in.d1 = (img[c*dim*dim+i*dim+j]);
-				//data_in.d2 = (img[c*dim*dim+i*dim+j+1]);
-				image.write(data_t(img[c*dim*dim+i*dim+j]));
-				image.write(data_t(img[c*dim*dim+i*dim+j+1]));
+				data_in.v1 = img[c*dim*dim+i*dim+j];
+				data_in.v2 = img[c*dim*dim+i*dim+j+1];
+				data_in.v3 = img[c*dim*dim+i*dim+j+2];
+				data_in.v4 = img[c*dim*dim+i*dim+j+3];
+				data_in.v5 = img[c*dim*dim+i*dim+j+4];
+				data_in.v6 = img[c*dim*dim+i*dim+j+5];
+				data_in.v7 = img[c*dim*dim+i*dim+j+6];
+				data_in.v8 = img[c*dim*dim+i*dim+j+7];
+
+				data_in.v12 = img[c*dim*dim+i*dim+j+8];
+				data_in.v22 = img[c*dim*dim+i*dim+j+9];
+				data_in.v32 = img[c*dim*dim+i*dim+j+10];
+				data_in.v42 = img[c*dim*dim+i*dim+j+11];
+				data_in.v52 = img[c*dim*dim+i*dim+j+12];
+				data_in.v62 = img[c*dim*dim+i*dim+j+13];
+				data_in.v72 = img[c*dim*dim+i*dim+j+14];
+				data_in.v82 = img[c*dim*dim+i*dim+j+15];
+				image.write(data_in);
+				//image.write(data_t(img[c*dim*dim+i*dim+j]));
 			}
 		}
 	}
@@ -80,11 +94,28 @@ int main() {
 	{
 		for(int i=0;i<o_dim;i++)
 		{
-			for(int j=0;j<o_dim;j++)
+			for(int j=0;j<o_dim;j+=8)
 			{
-				res[c*o_dim*o_dim + i*o_dim*+j]=float(result.read());
-				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j]);
+				data_out=result.read();
+				res[c*o_dim*o_dim + i*o_dim*+j]=  data_out.v1;
+				res[c*o_dim*o_dim + i*o_dim*+j+1]=data_out.v2;
+				res[c*o_dim*o_dim + i*o_dim*+j+2]=data_out.v3;
+				res[c*o_dim*o_dim + i*o_dim*+j+3]=data_out.v4;
 
+				res[c*o_dim*o_dim + i*o_dim*+j+4]=  data_out.v5;
+				res[c*o_dim*o_dim + i*o_dim*+j+5]=data_out.v6;
+				res[c*o_dim*o_dim + i*o_dim*+j+6]=data_out.v7;
+				res[c*o_dim*o_dim + i*o_dim*+j+7]=data_out.v8;
+
+				//res[c*o_dim*o_dim + i*o_dim*+j]=result.read();
+				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j]);
+				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j+1]);
+				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j+2]);
+				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j+3]);
+				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j+4]);
+				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j+5]);
+				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j+6]);
+				printf("%f\t", res[c*o_dim*o_dim + i*o_dim*+j+7]);
 			}
 			printf("\n");
 		}
